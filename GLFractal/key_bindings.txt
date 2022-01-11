@@ -1,0 +1,50 @@
+View (hold space to use it for selector):
+move center : LMB
+zoom in     : RMB (move up)
+zoom out    : RMB (move down)
+
+Fractals
+Mandelbrot set : 1
+Julia sets     : 2
+
+Selector:
+Choose point : LMB
+
+Iterations (hold space to use it for selector):
+100    : Ctrl + 1
+200    : Ctrl + 2
+300    : Ctrl + 3
+400    : Ctrl + 4
+500    : Ctrl + 5
+600    : Ctrl + 6
+700    : Ctrl + 7
+800    : Ctrl + 8
+900    : Ctrl + 9
+1000   : Ctrl + Shift + 1
+2000   : Ctrl + Shift + 2
+3000   : Ctrl + Shift + 3
+4000   : Ctrl + Shift + 4
+5000   : Ctrl + Shift + 5
+6000   : Ctrl + Shift + 6
+7000   : Ctrl + Shift + 7
+8000   : Ctrl + Shift + 8
+9000   : Ctrl + Shift + 9
+10000  : Ctrl + 0
+20000  : Ctrl + O
+100000 : Ctrl + Shift + 0
+200000 : Ctrl + Shift + O
+
+Number of colors (hold space to use it for selector):
+2    : Alt + 1
+4    : Alt + 2
+8    : Alt + 3
+16   : Alt + 4
+32   : Alt + 5
+64   : Alt + 6
+128  : Alt + 7
+256  : Alt + 8
+512  : Alt + 9
+1024 : Alt + 0
+
+Render:
+Toggle double : Tab
