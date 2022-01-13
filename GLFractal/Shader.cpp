@@ -15,6 +15,8 @@ bool createShaderProgram(const GLuint vertex, const GLuint fragment, GLuint* pro
 bool createShaderProgram(const char* vertexSource, const char* fragmentSource, GLuint* program);
 bool createShaderProgramFromFile(const char* vertexPath, const char* fragmentPath, GLuint* program);
 
+Shader::Shader() : _id(0), _isCreated(false) {}
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath) : updateFun([](Shader& shader) {})
 {
 	if (!createShaderProgramFromFile(vertexPath, fragmentPath, &_id))
@@ -53,6 +55,11 @@ void Shader::use()
 void Shader::update()
 {
 	updateFun(*this);
+}
+
+void Shader::free()
+{
+	glDeleteProgram(_id);
 }
 
 void Shader::setInt(const char* name, GLint x)

@@ -18,6 +18,10 @@ public:
 	/// <param name="fragmentPath">Path to fragment shader</param>
 	Shader(const char* vertexPath, const char* fragmentPath);
 	/// <summary>
+	/// Creates invalid shader
+	/// </summary>
+	Shader();
+	/// <summary>
 	/// Creates new shader from given files and with update function (check 'isCreated()' to ensure that shader was properly created)
 	/// </summary>
 	/// <param name="vertexPath">Path to vertex shader</param>
@@ -42,6 +46,10 @@ public:
 	/// Updates data in this shader
 	/// </summary>
 	void update();
+	/// <summary>
+	/// Deletes this shader
+	/// </summary>
+	void free();
 	/// <summary>
 	/// Sets uniform int
 	/// </summary>
