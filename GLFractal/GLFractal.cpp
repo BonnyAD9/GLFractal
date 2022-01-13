@@ -1,7 +1,7 @@
-#include "GLFractal.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "GLFractal.h"
 
 #include <iostream>
 
@@ -29,6 +29,8 @@ namespace GLFractal
         //const float _NORM_VIEW_HEIGHT = (float)_VIEW_HEIGHT / _WIN_HEIGHT * 2 - 1;
 
         const float _SMALL_SEC_HEIGHT = 1 - (float)_SMALL_WIDTH * 2 / _WIN_HEIGHT;
+
+        GLFConfig _initialSettings;
 
         double _scale;
         DVec2  _center;
@@ -111,7 +113,7 @@ namespace GLFractal
         void _processInput(GLFWwindow* window);
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
 
-        _Fractal fractal()
+        _Fractal _fractal()
         {
             return (_Fractal)(((unsigned int)_frac << 1) | (unsigned int)_useDouble);
         }
@@ -125,12 +127,12 @@ namespace GLFractal
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
             // initialize glfw window
-            GLFWwindow* window = glfwCreateWindow(_WIN_WIDTH, _WIN_HEIGHT, "Project Fractals", NULL, NULL);
-            if (window == NULL)
+            _window = glfwCreateWindow(_WIN_WIDTH, _WIN_HEIGHT, "Project Fractals", NULL, NULL);
+            if (_window == NULL)
                 return GLFResult::WINDOW_INIT_ERROR;
 
             // initialize glad
-            glfwMakeContextCurrent(window);
+            glfwMakeContextCurrent(_window);
             if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
                 return GLFResult::GLAD_INIT_ERROR;
 
@@ -138,7 +140,7 @@ namespace GLFractal
             glViewport(0, 0, _WIN_WIDTH, _WIN_HEIGHT);
 
             // setting on mouse move handler
-            glfwSetCursorPosCallback(window, _mouseMoveCallback);
+            glfwSetCursorPosCallback(_window, _mouseMoveCallback);
 
             return GLFResult::OK;
         }
@@ -317,7 +319,7 @@ namespace GLFractal
             return GLFResult::OK;
         }
 
-        void processInput(GLFWwindow* window)
+        void _processInput(GLFWwindow* window)
         {
             // exit on ESC
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -414,7 +416,7 @@ namespace GLFractal
             }
         }
 
-        void mouseMoveCallback(GLFWwindow* window, double x, double y)
+        void _mouseMoveCallback(GLFWwindow* window, double x, double y)
         {
             // calculating mouse movement
             static DVec2 last;
@@ -479,6 +481,8 @@ namespace GLFractal
 
     GLFResult init(GLFConfig config)
     {
+        _initialSettings = config;
+
         _scale      = config.scale;
         _center     = config.center;
         _iterations = config.iterations;
@@ -579,5 +583,7 @@ namespace GLFractal
         _fractals.juliaD.free();
 
         glfwTerminate();
+
+        return GLFResult::OK;
     }
 }
