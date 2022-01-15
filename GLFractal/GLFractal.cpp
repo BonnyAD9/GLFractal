@@ -15,6 +15,7 @@ namespace GLFractal
         using namespace std;
 
         enum class _Fractal;
+        enum class _RenderChange;
 
         // Sizes of window and render areas
         const int _WIN_WIDTH = 1500;
@@ -105,13 +106,40 @@ namespace GLFractal
             _NORM_VIEW_WIDTH, -1.0              , 0.0f,     0.0f, 0.0f
         };
 
+        _Fractal _fractal();
+
         GLFResult _init();
         GLFResult _initShaders();
         GLFResult _initBuffers();
         GLFResult _loadTexture(string texturePath);
 
         void _processInput(GLFWwindow* window);
+        _RenderChange _toggleFloatDouble(GLFWwindow* window);
+        _RenderChange _changeColorCount(GLFWwindow* window);
+        _RenderChange _changeIterations(GLFWwindow* window);
+        _RenderChange _changeFractal(GLFWwindow* window);
+        _RenderChange _resetRenderParam(GLFWwindow* window);
+
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
+
+        enum class _Fractal
+        {
+            MANDELBROT = 0b1,
+            JULIA = 0b10,
+
+            MANDELBROT_F = 0b10,
+            MANDELBROT_D = 0b11,
+            JULIA_F = 0b100,
+            JULIA_D = 0b101
+        };
+
+        enum class _RenderChange
+        {
+            INVALID = -1,
+            NONE = 0,
+            MAIN,
+            SELECTOR
+        };
 
         _Fractal _fractal()
         {
@@ -325,95 +353,138 @@ namespace GLFractal
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
 
-            // switching between float and double
-            int tab = glfwGetKey(window, GLFW_KEY_TAB);
+            _toggleFloatDouble(window);
+
+            if (_changeColorCount(window) != _RenderChange::NONE) {}
+            else if (_changeIterations(window) != _RenderChange::NONE) {}
+            else _changeFractal(window);
+        }
+
+        _RenderChange _toggleFloatDouble(GLFWwindow* window)
+        {
             static int lastTab = GLFW_RELEASE;
+
+            int tab = glfwGetKey(window, GLFW_KEY_TAB);
+
             if (tab != lastTab && tab == GLFW_PRESS)
             {
                 _useDouble = !_useDouble;
+                lastTab = tab;
+                return _RenderChange::MAIN;
             }
+            
             lastTab = tab;
+            return _RenderChange::NONE;
+        }
 
-            float newColorCount = (float)_colorCount;
-            int newIterations = _iterations;
-
-            // changing number of iterations
-            int base = 1;
+        _RenderChange _changeColorCount(GLFWwindow* window)
+        {
+            float newColorCount = 0;
             if (glfwGetKey(window, GLFW_KEY_LEFT_ALT))
             {
                 if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-                    newColorCount = 2;
+                    newColorCount = 2.0f;
                 else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-                    newColorCount = 4;
+                    newColorCount = 4.0f;
                 else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-                    newColorCount = 8;
+                    newColorCount = 8.0f;
                 else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
-                    newColorCount = 16;
+                    newColorCount = 16.0f;
                 else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
-                    newColorCount = 32;
+                    newColorCount = 32.0f;
                 else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-                    newColorCount = 64;
+                    newColorCount = 64.0f;
                 else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
-                    newColorCount = 128;
+                    newColorCount = 128.0f;
                 else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
-                    newColorCount = 256;
+                    newColorCount = 256.0f;
                 else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
-                    newColorCount = 512;
+                    newColorCount = 512.0f;
                 else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
-                    newColorCount = 1024;
+                    newColorCount = 1024.0f;
                 else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-                    newColorCount = 2048;
+                    newColorCount = 2048.0f;
                 else
-                    return;
-            }
-            else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-            {
-                if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-                    base = 10;
-                if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-                    newIterations = base * 100;
-                else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-                    newIterations = base * 200;
-                else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-                    newIterations = base * 300;
-                else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
-                    newIterations = base * 400;
-                else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
-                    newIterations = base * 500;
-                else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-                    newIterations = base * 600;
-                else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
-                    newIterations = base * 700;
-                else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
-                    newIterations = base * 800;
-                else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
-                    newIterations = base * 900;
-                else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
-                    newIterations = base * 10000;
-                else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-                    newIterations = base * 20000;
-                else
-                    return;
+                    return _RenderChange::INVALID;
             }
             else
+                return _RenderChange::NONE;
+
+            if (glfwGetKey(window, GLFW_KEY_SPACE))
+            {
+                _selColorCount = newColorCount;
+                return _RenderChange::SELECTOR;
+            }
+            _colorCount = newColorCount;
+            return _RenderChange::MAIN;
+        }
+
+        _RenderChange _changeIterations(GLFWwindow* window)
+        {
+            int newIterations = 0;
+            if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
             {
                 if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-                    _frac = Fractal::MANDELBROT;
-                if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-                    _frac = Fractal::JULIA;
-                return;
+                    newIterations = 100;
+                else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+                    newIterations = 200;
+                else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+                    newIterations = 300;
+                else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+                    newIterations = 400;
+                else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+                    newIterations = 500;
+                else if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+                    newIterations = 600;
+                else if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+                    newIterations = 700;
+                else if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+                    newIterations = 800;
+                else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+                    newIterations = 900;
+                else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
+                    newIterations = 10000;
+                else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+                    newIterations = 20000;
+                else
+                    return _RenderChange::INVALID;
+
+                if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                    newIterations *= 10;
             }
+            else
+                return _RenderChange::NONE;
 
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
-                _selColorCount = newColorCount;
                 _selIterations = newIterations;
+                return _RenderChange::SELECTOR;
             }
-            else
+            _iterations = newIterations;
+            return _RenderChange::MAIN;
+        }
+
+        _RenderChange _changeFractal(GLFWwindow* window)
+        {
+            if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
             {
-                _colorCount = newColorCount;
-                _iterations = newIterations;
+                _frac = Fractal::MANDELBROT;
+                return _RenderChange::MAIN;
             }
+            if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+            {
+                _frac = Fractal::JULIA;
+                return _RenderChange::MAIN;
+            }
+            return _RenderChange::NONE;
+        }
+
+        _RenderChange _resetRenderParam(GLFWwindow* window)
+        {
+            if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE)
+                return _RenderChange::NONE;
+
+            return _RenderChange::NONE;
         }
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y)
@@ -466,17 +537,6 @@ namespace GLFractal
                 }
             }
         }
-
-        enum class _Fractal
-        {
-            MANDELBROT = 0b1,
-            JULIA = 0b10,
-
-            MANDELBROT_F = 0b10,
-            MANDELBROT_D = 0b11,
-            JULIA_F = 0b100,
-            JULIA_D = 0b101
-        };
     }
 
     GLFResult init(GLFConfig config)
