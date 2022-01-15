@@ -1,7 +1,7 @@
 View (hold space to use it for selector):
 move center : LMB
-zoom in     : RMB (move up)
-zoom out    : RMB (move down)
+zoom in     : RMB up
+zoom out    : RMB down
 
 Fractals
 Mandelbrot set : 1
@@ -48,3 +48,9 @@ Number of colors (hold space to use it for selector):
 
 Render:
 Toggle double : Tab
+
+Reset (hold space to use it for selector):
+Zoom and center  : R
+Iterations       : Ctrl + R
+Number of colors : Alt + R
+All              : Shift + R

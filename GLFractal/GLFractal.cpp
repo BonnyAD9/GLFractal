@@ -119,6 +119,8 @@ namespace GLFractal
         _RenderChange _changeIterations(GLFWwindow* window);
         _RenderChange _changeFractal(GLFWwindow* window);
         _RenderChange _resetRenderParam(GLFWwindow* window);
+        _RenderChange _resetMainRenderParam(GLFWwindow* window);
+        _RenderChange _resetSelectorRenderParam(GLFWwindow* window);
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
 
@@ -358,6 +360,8 @@ namespace GLFractal
             if (_changeColorCount(window) != _RenderChange::NONE) {}
             else if (_changeIterations(window) != _RenderChange::NONE) {}
             else _changeFractal(window);
+
+            _resetRenderParam(window);
         }
 
         _RenderChange _toggleFloatDouble(GLFWwindow* window)
@@ -484,7 +488,53 @@ namespace GLFractal
             if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE)
                 return _RenderChange::NONE;
 
-            return _RenderChange::NONE;
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+                return _resetSelectorRenderParam(window);
+            return _resetMainRenderParam(window);
+        }
+
+        _RenderChange _resetMainRenderParam(GLFWwindow* window)
+        {
+            if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+                _iterations = _initialSettings.iterations;
+            else if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+                _colorCount = _initialSettings.colorCount;
+            else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            {
+                _iterations = _initialSettings.iterations;
+                _colorCount = _initialSettings.colorCount;
+                _center     = _initialSettings.center;
+                _scale      = _initialSettings.scale;
+            }
+            else
+            {
+                _center = _initialSettings.center;
+                _scale  = _initialSettings.scale;
+            }
+
+            return _RenderChange::MAIN;
+        }
+
+        _RenderChange _resetSelectorRenderParam(GLFWwindow* window)
+        {
+            if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+                _selIterations = _initialSettings.selIterations;
+            else if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+                _selColorCount = _initialSettings.selColorCount;
+            else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            {
+                _selIterations = _initialSettings.selIterations;
+                _selColorCount = _initialSettings.selColorCount;
+                _selCenter     = _initialSettings.selCenter;
+                _selScale      = _initialSettings.selScale;
+            }
+            else
+            {
+                _selCenter = _initialSettings.selCenter;
+                _selScale  = _initialSettings.selScale;
+            }
+
+            return _RenderChange::SELECTOR;
         }
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y)
