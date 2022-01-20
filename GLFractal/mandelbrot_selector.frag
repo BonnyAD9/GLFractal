@@ -35,7 +35,7 @@ void main()
     vec4 col = i == iter ? vec4(color, 1.0) : texture(texture1, vec2(float(i) / colorCount));
     if (dist < (0.007 * scale) && dist > (0.004 * scale))
     {
-        col = 1 - col;
+        col = vec4(1.0 - col.x, 1.0 - col.y, 1.0 - col.z, 1.0);
         col.x = 1.0;
     }
     FragColor = col;

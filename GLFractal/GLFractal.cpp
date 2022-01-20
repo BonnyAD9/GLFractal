@@ -149,6 +149,8 @@ namespace GLFractal
 
         void _renderText(string text, float x, float y);
 
+        void _renderInfo(double deltaTime);
+
         enum class _Fractal
         {
             MANDELBROT = 0b1,
@@ -191,7 +193,6 @@ namespace GLFractal
             if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
                 return GLFResult::GLAD_INIT_ERROR;
 
-            //glEnable(GL_CULL_FACE);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -700,9 +701,8 @@ namespace GLFractal
             }
         }
 
-        void _renderText(string text, float x, float y)
+        void _renderText(string text, float x, float y, float scale)
         {
-            const float SCALE = 1;
 
             _fontShader.update();
             glBindVertexArray(_buffers.textVAO);
@@ -711,11 +711,11 @@ namespace GLFractal
             {
                 Character ch = _font[*c];
 
-                float xPos = x + ch.bearing.x * SCALE;
-                float yPos = y - (ch.size.y - ch.bearing.y) * SCALE;
+                float xPos = x + ch.bearing.x * scale;
+                float yPos = y - (ch.size.y - ch.bearing.y) * scale;
 
-                float w = ch.size.x * SCALE;
-                float h = ch.size.y * SCALE;
+                float w = ch.size.x * scale;
+                float h = ch.size.y * scale;
 
                 float vertices[] =
                 {
@@ -724,19 +724,59 @@ namespace GLFractal
                     xPos + w, yPos    , (float)(ch.position.x + ch.size.x) / _font.width(), (float)ch.position.y / _font.height(),
                     xPos + w, yPos + h, (float)(ch.position.x + ch.size.x) / _font.width(), (float)(ch.position.y + ch.size.y) / _font.height(),
                 };
-                /*float vertices[] = {
-                    0, 0,   0.0f, 0.0f,
-                    0, _font.height(),   0.0f, 1.0f,
-                    _font.width(), _font.height(),   1.0f, 1.0f,
-                    _font.width(), 0,   1.0f, 0.0f,
-                };*/
 
                 glBindBuffer(GL_ARRAY_BUFFER, _buffers.textVBO);
                 glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                x += (ch.advance >> 6) * SCALE;
+                x += (ch.advance >> 6) * scale;
             }
+        }
+
+        void _renderInfo(double deltaTime)
+        {
+            const float scale = 1.0f / 2.0f;
+
+            double fps = 1 / deltaTime;
+
+            string fractal;
+            switch (_frac)
+            {
+            case Fractal::MANDELBROT:
+                fractal = "Mandelbrot Set";
+                break;
+            case Fractal::JULIA:
+                fractal = "Julia Set";
+                break;
+            default:
+                fractal = "Unknown";
+                break;
+            }
+            
+            string useDouble = _useDouble ? "yes" : "no";
+            
+            float lm = 1010;
+            float ls = 1020;
+            float t = 980;
+
+            _renderText("Fps: " + to_string((int)fps), lm, t, scale);
+
+            _renderText("Fractal: " + fractal, lm, t -= 30, scale);
+
+            _renderText("Main:", lm, t -= 30, scale);
+            _renderText("Iterations: " + to_string(_iterations), ls, t -= 25, scale);
+            _renderText("Color count: " + to_string((int)_colorCount), ls, t -= 25, scale);
+            _renderText("Use double: " + useDouble, ls, t -= 25, scale);
+            _renderText("Scale: " + to_string(1 / _scale), ls, t -= 25, scale);
+            _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= 25, scale);
+            _renderText("Number: " + to_string(_constant.x) + " + " + to_string(_constant.y) + "i", ls, t -= 25, scale);
+
+            _renderText("Selector:", lm, t -= 30, scale);
+            _renderText("Iterations: " + to_string(_selIterations), ls, t -= 25, scale);
+            _renderText("Color count: " + to_string((int)_selColorCount), ls, t -= 25, scale);
+            _renderText("Scale: " + to_string(1 / _selScale), ls, t -= 25, scale);
+            _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= 25, scale);
+
         }
     }
 
@@ -782,6 +822,7 @@ namespace GLFractal
 
     GLFResult mainloop()
     {
+        double lastTime = glfwGetTime();
         while (!glfwWindowShouldClose(_window))
         {
             // user input
@@ -820,6 +861,12 @@ namespace GLFractal
 
             // rendering image
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+            double newTime = glfwGetTime();
+
+            _renderInfo(newTime - lastTime);
+
+            lastTime = newTime;
 
             // showing image
             glfwSwapBuffers(_window);

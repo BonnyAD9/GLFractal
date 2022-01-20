@@ -47,7 +47,7 @@ namespace GLFractal
 		string gradientPath{ "yel_blue_1024.png" };
 		
 		string fontPath{ "CascadiaMono.ttf" };
-		int fontSize{ 11 };
+		int fontSize{ 40 };
 	};
 
 	GLFResult init(GLFConfig config);
