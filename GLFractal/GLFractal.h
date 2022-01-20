@@ -18,6 +18,10 @@ namespace GLFractal
 		SHADER_INIT_ERROR,
 		TEXTURE_LOAD_ERROR,
 		INVALID_FRACTAL,
+		UNEXPECTED_ERROR,
+		FREETYPE_LOAD_ERROR,
+		FONT_LOAD_ERROR,
+		SOME_CHARACTERS_MISSING,
 	};
 
 	struct GLFConfig
@@ -41,7 +45,9 @@ namespace GLFractal
 		Vec3 textColor{ 0.9f, 0.9f, 0.9f };
 
 		string gradientPath{ "yel_blue_1024.png" };
+		
 		string fontPath{ "CascadiaMono.ttf" };
+		int fontSize{ 11 };
 	};
 
 	GLFResult init(GLFConfig config);

@@ -6,7 +6,10 @@
 #include <iostream>
 
 #include "stb_image.h"
+
 #include "Shader.h"
+#include "FontTexture.h"
+#include "Vectors.h"
 
 namespace GLFractal
 {
@@ -50,6 +53,14 @@ namespace GLFractal
 
         GLFWwindow* _window;
 
+        FontTexture _font;
+        int _fontSize;
+        Shader _fontShader;
+        Vec3 _textColor;
+        Mat4 _fontProjection;
+
+        Mat4 _projection = Mat4::orthographic(0, _WIN_WIDTH, 0, _WIN_HEIGHT, 1, -1);
+
         _Fractal _fractal();
 
         struct
@@ -71,7 +82,12 @@ namespace GLFractal
             unsigned int selVBO;
             unsigned int selEBO;
 
-            unsigned int texture;
+            unsigned int textVAO;
+            unsigned int textVBO;
+            unsigned int textEBO;
+
+            unsigned int gradientTexture;
+            unsigned int fontTexture;
         } _buffers;
 
         // Points on screen used to form triangles for main view
@@ -97,6 +113,12 @@ namespace GLFractal
             1, 2, 3
         };
 
+        const unsigned int _textIndices[] =
+        {
+            0, 1, 3,
+            1, 2, 3,
+        };
+
         // Points on screen used to form truengles for point selector view
         const float _selectorVertices[] =
         {
@@ -112,6 +134,7 @@ namespace GLFractal
         GLFResult _initShaders();
         GLFResult _initBuffers();
         GLFResult _loadTexture(string texturePath);
+        GLFResult _loadFont(string fontPath);
 
         void _processInput(GLFWwindow* window);
         _RenderChange _toggleFloatDouble(GLFWwindow* window);
@@ -123,6 +146,8 @@ namespace GLFractal
         _RenderChange _resetSelectorRenderParam(GLFWwindow* window);
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
+
+        void _renderText(string text, float x, float y);
 
         enum class _Fractal
         {
@@ -165,6 +190,10 @@ namespace GLFractal
             glfwMakeContextCurrent(_window);
             if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
                 return GLFResult::GLAD_INIT_ERROR;
+
+            //glEnable(GL_CULL_FACE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
             // setting viewport size
             glViewport(0, 0, _WIN_WIDTH, _WIN_HEIGHT);
@@ -296,11 +325,11 @@ namespace GLFractal
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.mainEBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_mainIndices), _mainIndices, GL_STATIC_DRAW);
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
             glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
             glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
             // selector view
             glGenVertexArrays(1, &_buffers.selVAO);
@@ -315,11 +344,11 @@ namespace GLFractal
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.selEBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_selectorIndices), _selectorIndices, GL_STATIC_DRAW);
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
             glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
             glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
             return GLFResult::OK;
         }
@@ -331,20 +360,103 @@ namespace GLFractal
             if (!data)
                 return GLFResult::TEXTURE_LOAD_ERROR;
 
-            // setting up texture 'behaviour'
-            glGenTextures(1, &_buffers.texture);
-            glBindTexture(GL_TEXTURE_2D, _buffers.texture);
+            // setting up texture
+            glGenTextures(1, &_buffers.gradientTexture);
+            glBindTexture(GL_TEXTURE_2D, _buffers.gradientTexture);
+
+            // loading texture to gpu
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _buffers.gradientTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+            // setting texture options
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            // loading texture to gpu
-            glBindTexture(GL_TEXTURE_2D, _buffers.texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
             // deleting texture from ram
             stbi_image_free(data);
+
+
+
+            return GLFResult::OK;
+        }
+
+        GLFResult _loadFont(string fontPath)
+        {
+            // loading font
+            _font = FontTexture(fontPath, _fontSize);
+            switch (_font.status())
+            {
+            case FontTextureStatus::FREETYPE_NOT_LOADED:
+                return GLFResult::FREETYPE_LOAD_ERROR;
+            case FontTextureStatus::FONT_NOT_LOADED:
+                return GLFResult::FONT_LOAD_ERROR;
+            case FontTextureStatus::SOME_CHARACTERS_MISSING:
+                break;
+            case FontTextureStatus::OK:
+                break;
+            default:
+                return GLFResult::UNEXPECTED_ERROR;
+            }
+
+            _fontShader = Shader("text.vert", "text.frag", [](Shader& s)
+            {
+                s.use();
+                s.setMatrix4("projection", _projection);
+                //s.setMatrix4("texProjection", _fontProjection);
+                s.setFloat3("textColor", _textColor);
+                _fontShader.setInt("font", 1);
+
+            });
+
+            if (!_fontShader.isCreated())
+                return GLFResult::SHADER_INIT_ERROR;
+
+            _fontShader.use();
+
+            //_fontProjection = Mat4::scale(1.0f / _font.width(), 1.0f / _font.height(), 1.0f);
+            
+            // loading texture
+            //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            
+            glGenTextures(1, &_buffers.fontTexture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, _buffers.fontTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, _font.width(), _font.height(), 0, GL_RED, GL_UNSIGNED_BYTE, _font.image());
+
+            _font.freeImage();
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            // prepare buffers for rendering text
+            glGenVertexArrays(1, &_buffers.textVAO);
+            glGenBuffers(1, &_buffers.textVBO);
+            glGenBuffers(1, &_buffers.textEBO);
+
+            float vertices[] = {
+                -1.0f, -1.0f,   0.0f, 0.0f,
+                -1.0f,  1.0f,   0.0f, 1.0f,
+                 1.0f,  1.0f,   1.0f, 1.0f,
+                 1.0f, -1.0f,   1.0f, 0.0f,
+            };
+
+            glBindVertexArray(_buffers.textVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, _buffers.textVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.textEBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_textIndices), _textIndices, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
 
             return GLFResult::OK;
         }
@@ -587,6 +699,45 @@ namespace GLFractal
                 }
             }
         }
+
+        void _renderText(string text, float x, float y)
+        {
+            const float SCALE = 1;
+
+            _fontShader.update();
+            glBindVertexArray(_buffers.textVAO);
+
+            for (string::const_iterator c = text.begin(); c != text.end(); c++)
+            {
+                Character ch = _font[*c];
+
+                float xPos = x + ch.bearing.x * SCALE;
+                float yPos = y - (ch.size.y - ch.bearing.y) * SCALE;
+
+                float w = ch.size.x * SCALE;
+                float h = ch.size.y * SCALE;
+
+                float vertices[] =
+                {
+                    xPos    , yPos + h, (float)ch.position.x / _font.width()              , (float)(ch.position.y + ch.size.y) / _font.height(),
+                    xPos    , yPos    , (float)ch.position.x / _font.width()              , (float)ch.position.y / _font.height(),
+                    xPos + w, yPos    , (float)(ch.position.x + ch.size.x) / _font.width(), (float)ch.position.y / _font.height(),
+                    xPos + w, yPos + h, (float)(ch.position.x + ch.size.x) / _font.width(), (float)(ch.position.y + ch.size.y) / _font.height(),
+                };
+                /*float vertices[] = {
+                    0, 0,   0.0f, 0.0f,
+                    0, _font.height(),   0.0f, 1.0f,
+                    _font.width(), _font.height(),   1.0f, 1.0f,
+                    _font.width(), 0,   1.0f, 0.0f,
+                };*/
+
+                glBindBuffer(GL_ARRAY_BUFFER, _buffers.textVBO);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+                x += (ch.advance >> 6) * SCALE;
+            }
+        }
     }
 
     GLFResult init(GLFConfig config)
@@ -608,6 +759,9 @@ namespace GLFractal
         _frac      = config.fractal;
         _useDouble = config.useDouble;
 
+        _fontSize = config.fontSize;
+        _textColor = config.textColor;
+
         GLFResult result{ GLFResult::OK };
         if ((result = _init()) != GLFResult::OK)
             return result;
@@ -619,6 +773,8 @@ namespace GLFractal
         if ((result = _initBuffers()) != GLFResult::OK)
             return result;
         if ((result = _loadTexture(config.gradientPath)) != GLFResult::OK)
+            return result;
+        if ((result = _loadFont(config.fontPath)) != GLFResult::OK)
             return result;
 
         return GLFResult::OK;
@@ -634,6 +790,7 @@ namespace GLFractal
             // clearing display
             glClear(GL_COLOR_BUFFER_BIT);
 
+            //glBindTexture(GL_TEXTURE_2D, _buffers.gradientTexture);
             glBindVertexArray(_buffers.mainVAO);
 
             // choosing fractal to render
@@ -684,7 +841,7 @@ namespace GLFractal
         glDeleteBuffers(1, &_buffers.selVBO);
         glDeleteBuffers(1, &_buffers.selEBO);
 
-        glDeleteTextures(1, &_buffers.texture);
+        glDeleteTextures(1, &_buffers.gradientTexture);
 
         _fractals.mandelbrotF.free();
         _fractals.mandelbrotD.free();

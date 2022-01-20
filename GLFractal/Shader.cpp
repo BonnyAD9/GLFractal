@@ -107,6 +107,16 @@ void Shader::setFloat3(const char* name, Vec3 xyz)
 	glUniform3f(glGetUniformLocation(_id, name), xyz.x, xyz.y, xyz.z);
 }
 
+void Shader::setMatrix4(const char* name, Mat4 matrix)
+{
+	glUniformMatrix4fv(glGetUniformLocation(_id, name), 1, GL_TRUE, matrix.data());
+}
+
+void Shader::setMatrix4(const char* name, const float* data)
+{
+	glUniformMatrix4fv(glGetUniformLocation(_id, name), 1, GL_TRUE, data);
+}
+
 bool createShaderFromFile(const char* path, GLuint* shader, GLenum type)
 {
 	ifstream file(path);

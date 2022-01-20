@@ -7,7 +7,9 @@
 
 using std::pair;
 
-FontTexture::FontTexture(string path, const int charHeight) : _characters(), _data(), _status(), _width(charHeight * 16)
+FontTexture::FontTexture() : _characters(), _data(), _status(), _width(), _height() {}
+
+FontTexture::FontTexture(string path, int charHeight) : _characters(), _data(), _status(), _width(charHeight * 16), _height(0)
 {
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
@@ -25,27 +27,28 @@ FontTexture::FontTexture(string path, const int charHeight) : _characters(), _da
 
     FT_Set_Pixel_Sizes(face, 0, charHeight);
 
-    const int reserveSize = charHeight * _width;
+    const int reserveSize = (charHeight + 1) * _width;
 
     int posX = 0;
     int posY = 0;
 
-    _data.reserve(reserveSize);
+    _data.resize(reserveSize);
 
     // pre-rendering only first 128 ASCII characters
-    for (char c = 0; c < 128; c++)
+    for (unsigned char c = 0; c < 128; c++)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
-            _status = FontTextureStatus::SOME_CHARACTERS_MUSSING;
+            std::cout << "Missing character '" << c << "'" << std::endl;
+            _status = FontTextureStatus::SOME_CHARACTERS_MISSING;
             continue;
         }
 
-        IVec2 size{ (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows };
+        IVec2 size{ (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows};
 
-        if (size.x + posX > _width)
+        if (size.x + posX >= _width)
         {
-            _data.reserve(reserveSize);
+            _data.resize(_data.size() + reserveSize);
             posX = 0;
             posY += charHeight;
         }
@@ -53,11 +56,11 @@ FontTexture::FontTexture(string path, const int charHeight) : _characters(), _da
         for (int y = 0; y < size.y; y++)
         {
             for (int x = 0; x < size.x; x++)
-                _getData(x + posX, y + posY) = face->glyph->bitmap.buffer[x + y * size.y];
+                _getData(x + posX, y + posY) = face->glyph->bitmap.buffer[x + ((size.y - y - 1) * size.x)];
         }
 
         Character ch{
-            .position = IVec2{ posX, posY + size.y },
+            .position = IVec2{ posX, posY },
             .size = size,
             .bearing = IVec2{ face->glyph->bitmap_left, face->glyph->bitmap_top },
             .advance = (unsigned int)face->glyph->advance.x
@@ -72,6 +75,21 @@ FontTexture::FontTexture(string path, const int charHeight) : _characters(), _da
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
+}
+
+void FontTexture::freeImage()
+{
+    _data.clear();
+}
+
+FontTexture FontTexture::operator=(FontTexture font)
+{
+    _data = font._data;
+    _characters = font._characters;
+    _status = font._status;
+    _width = font._width;
+    _height = font._height;
+    return *this;
 }
 
 unsigned char& FontTexture::_getData(int x, int y)

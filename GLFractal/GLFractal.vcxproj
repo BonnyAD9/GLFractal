@@ -182,6 +182,12 @@
     <Content Include="CascadiaMono.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="text.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="text.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="julia_d.frag" />
@@ -190,6 +196,8 @@
     <None Include="mandelbrot_d.frag" />
     <None Include="mandelbrot_selector.frag" />
     <None Include="shader.vert" />
+    <None Include="text.frag" />
+    <None Include="text.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="yel_blue_1024.png" />

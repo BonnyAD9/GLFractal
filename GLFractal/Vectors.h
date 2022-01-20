@@ -178,3 +178,26 @@ public:
 	/// </summary>
 	float z;
 };
+
+class Mat4
+{
+public:
+	Mat4();
+	static const int WIDTH = 4;
+	static const int HEIGHT = 4;
+	static const int LENGTH = WIDTH * HEIGHT;
+	Mat4(float data[LENGTH]);
+	float at(int x, int y) const;
+	float* data();
+	static Mat4 orthographic(
+		const float left,
+		const float right,
+		const float bottom,
+		const float top,
+		const float near,
+		const float far
+	);
+	static Mat4 scale(const float xScale, const float yScale, const float zScale);
+private:
+	float _data[LENGTH];
+};
