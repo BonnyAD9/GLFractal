@@ -3,10 +3,26 @@
 
 using std::string;
 
+/// <summary>
+/// Vector of size 2 with single floating point precision
+/// </summary>
 class Vec2;
+/// <summary>
+/// Vector of size 2 with double floating point precision
+/// </summary>
 class DVec2;
+/// <summary>
+/// Vector of size 2 with integer precision
+/// </summary>
 class IVec2;
+/// <summary>
+/// Vector of size 3 with single floating point precision
+/// </summary>
 class Vec3;
+/// <summary>
+/// Matrix of size 4x4 with single floating point precision
+/// </summary>
+class Mat4;
 
 class Vec2
 {
@@ -26,6 +42,10 @@ public:
 	/// </summary>
 	/// <param name="vec">vector to copy value from</param>
 	explicit Vec2(DVec2 vec);
+	/// <summary>
+	/// Initializes vector from int vector
+	/// </summary>
+	/// <param name="vec">vector to copy value from</param>
 	explicit Vec2(IVec2 vec);
 	Vec2 operator+(Vec2 vec);
 	Vec2 operator-(Vec2 vec);
@@ -65,6 +85,10 @@ public:
 	/// </summary>
 	/// <param name="vec">vector to copy value from</param>
 	DVec2(Vec2 vec);
+	/// <summary>
+	/// Initializes vector from int vector
+	/// </summary>
+	/// <param name="vec">vector to copy value from</param>
 	DVec2(IVec2 vec);
 	DVec2 operator+(DVec2 vec);
 	DVec2 operator-(DVec2 vec);
@@ -182,13 +206,49 @@ public:
 class Mat4
 {
 public:
+	/// <summary>
+	/// Initializes matrix filled with zeros
+	/// </summary>
 	Mat4();
+	/// <summary>
+	/// Width of the matrix (4)
+	/// </summary>
 	static const int WIDTH = 4;
+	/// <summary>
+	/// Height of the matrix (4)
+	/// </summary>
 	static const int HEIGHT = 4;
+	/// <summary>
+	/// Total number of elements (16)
+	/// </summary>
 	static const int LENGTH = WIDTH * HEIGHT;
+	/// <summary>
+	/// Initializes new matrix by copying data from the given array with length of 16
+	/// </summary>
+	/// <param name="data">Matrix array of size 16</param>
 	Mat4(float data[LENGTH]);
+	/// <summary>
+	/// Gets value of the matrix at the given coordinates
+	/// </summary>
+	/// <param name="x">X coordinate</param>
+	/// <param name="y">Y coordinate</param>
+	/// <returns>value of the matrix at the given coordinates</returns>
 	float at(int x, int y) const;
+	/// <summary>
+	/// Gets pointer to the matrix data
+	/// </summary>
+	/// <returns>pointer to the matrix data</returns>
 	float* data();
+	/// <summary>
+	/// Creates new matrix with orthographic projection
+	/// </summary>
+	/// <param name="left">leftmost coordinate</param>
+	/// <param name="right">rightmost coordinate</param>
+	/// <param name="bottom">bottom coordinate</param>
+	/// <param name="top">top coordinate</param>
+	/// <param name="near">nearest coordinate</param>
+	/// <param name="far">furtherest coordinate</param>
+	/// <returns>Matrix with the given orthographic projection</returns>
 	static Mat4 orthographic(
 		const float left,
 		const float right,
@@ -197,6 +257,13 @@ public:
 		const float near,
 		const float far
 	);
+	/// <summary>
+	/// Creates new scaling matrix
+	/// </summary>
+	/// <param name="xScale">Scale of x coordinate</param>
+	/// <param name="yScale">Scale of y coordinate</param>
+	/// <param name="zScale">Scale of z coordinate</param>
+	/// <returns>Scaling matrix</returns>
 	static Mat4 scale(const float xScale, const float yScale, const float zScale);
 private:
 	float _data[LENGTH];

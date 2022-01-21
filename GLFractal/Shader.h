@@ -108,7 +108,17 @@ public:
 	/// <param name="name">name of variable</param>
 	/// <param name="xyz">value of variable</param>
 	void setFloat3(const char* name, Vec3 xyz);
+	/// <summary>
+	/// Sets uniform mat4
+	/// </summary>
+	/// <param name="name">name of variable</param>
+	/// <param name="matrix">value of variable</param>
 	void setMatrix4(const char* name, Mat4 matrix);
+	/// <summary>
+	/// Sets uniform mat43
+	/// </summary>
+	/// <param name="name">name of variable</param>
+	/// <param name="data">value of variable</param>
 	void setMatrix4(const char* name, const float* data);
 	/// <summary>
 	/// Function that updates the value of shader
