@@ -888,13 +888,20 @@ namespace GLFractal
         glDeleteBuffers(1, &_buffers.selVBO);
         glDeleteBuffers(1, &_buffers.selEBO);
 
+        glDeleteVertexArrays(1, &_buffers.textVAO);
+        glDeleteBuffers(1, &_buffers.textVBO);
+        glDeleteBuffers(1, &_buffers.textEBO);
+
         glDeleteTextures(1, &_buffers.gradientTexture);
+        glDeleteTextures(1, &_buffers.fontTexture);
 
         _fractals.mandelbrotF.free();
         _fractals.mandelbrotD.free();
         _fractals.mandelbrotSelector.free();
         _fractals.juliaF.free();
         _fractals.juliaD.free();
+
+        _fontShader.free();
 
         glfwTerminate();
 
