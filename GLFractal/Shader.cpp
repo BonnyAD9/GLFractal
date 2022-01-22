@@ -7,7 +7,7 @@
 #include "Shader.h"
 #include "Vectors.h"
 
-using std::cout, std::endl, std::istreambuf_iterator;
+using std::cout, std::endl, std::istreambuf_iterator, std::unique_ptr;
 
 bool createShader(const char* source, GLuint* shader, GLenum type);
 bool createShaderFromFile(const char* path, GLuint* shader, GLenum type);
@@ -115,6 +115,17 @@ void Shader::setMatrix4(const char* name, Mat4 matrix)
 void Shader::setMatrix4(const char* name, const float* data)
 {
 	glUniformMatrix4fv(glGetUniformLocation(_id, name), 1, GL_TRUE, data);
+}
+
+void Shader::setFloat2Array(const char* name, const int length, const Vec2* arr)
+{
+	unique_ptr<float> data{new float[length * 2]};
+	for (int i = 0; i < length; i++)
+	{
+		data.get()[i * 2] = arr[i].x;
+		data.get()[i * 2 + 1] = arr[i].y;
+	}
+	glUniform2fv(glGetUniformLocation(_id, name), length, data.get());
 }
 
 bool createShaderFromFile(const char* path, GLuint* shader, GLenum type)

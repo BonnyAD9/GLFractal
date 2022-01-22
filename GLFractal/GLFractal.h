@@ -15,6 +15,7 @@ namespace GLFractal
 		HELP = 0b0,
 		MANDELBROT = 0b1,
 		JULIA = 0b10,
+		NEWTON = 0b11,
 	};
 
 	/// <summary>

@@ -36,6 +36,9 @@
     <ClCompile Include="GLFractal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="complex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.vert">
@@ -62,6 +65,12 @@
     <None Include="text.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="newton_coef_f.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="newton_coef_d.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="yel_blue_1024.png">
@@ -82,6 +91,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GLFractal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="complex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

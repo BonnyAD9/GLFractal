@@ -36,7 +36,6 @@ void main()
     if (dist < (0.007 * scale) && dist > (0.004 * scale))
     {
         col = vec4(1.0 - col.x, 1.0 - col.y, 1.0 - col.z, 1.0);
-        col.x = 1.0;
     }
     FragColor = col;
 }

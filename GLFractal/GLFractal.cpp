@@ -10,6 +10,7 @@
 #include "Shader.h"
 #include "FontTexture.h"
 #include "Vectors.h"
+#include "complex.h"
 
 namespace GLFractal
 {
@@ -33,6 +34,8 @@ namespace GLFractal
         //const float _NORM_VIEW_HEIGHT = (float)_VIEW_HEIGHT / _WIN_HEIGHT * 2 - 1;
 
         const float _SMALL_SEC_HEIGHT = 1 - (float)_SMALL_WIDTH * 2 / _WIN_HEIGHT;
+
+        const int _MAX_ROOTS = 10;
 
         GLFConfig _initialSettings;
 
@@ -61,6 +64,27 @@ namespace GLFractal
 
         Mat4 _projection = Mat4::orthographic(0, _WIN_WIDTH, 0, _WIN_HEIGHT, 1, -1);
 
+        static DVec2 lastMousePos;
+
+        int _rootCount = 3;
+        Vec2 _roots[_MAX_ROOTS] =
+        {
+            Vec2(1.0f, 0.0f),
+            Vec2(-0.5f, -0.86603f),
+            Vec2(-0.5f, 0.86603f),
+        };
+
+        int _coefCount = 4;
+        Vec2 _coefs[_MAX_ROOTS + 1] =
+        {
+            Vec2(1.0f, 0.0f),
+            Vec2(0.0f, 0.0f),
+            Vec2(0.0f, 0.0f),
+            Vec2(-1.0f, 0.0f),
+        };
+
+        int _rootHold = -1;
+
         _Fractal _fractal();
 
         struct
@@ -70,6 +94,8 @@ namespace GLFractal
             Shader mandelbrotSelector;
             Shader juliaF;
             Shader juliaD;
+            Shader newtonCoefF;
+            Shader newtonCoefD;
         } _fractals;
 
         struct
@@ -144,6 +170,7 @@ namespace GLFractal
         _RenderChange _resetRenderParam(GLFWwindow* window);
         _RenderChange _resetMainRenderParam(GLFWwindow* window);
         _RenderChange _resetSelectorRenderParam(GLFWwindow* window);
+        _RenderChange _changeCoefs(GLFWwindow* window);
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
 
@@ -153,18 +180,23 @@ namespace GLFractal
 
         void _renderHelp();
 
+        void _updateCoefs();
+
         enum class _Fractal
         {
             HELP = 0b0,
             MANDELBROT = 0b1,
             JULIA = 0b10,
+            NEWTON = 0b11,
 
             HELP_F = 0b00,
             HELP_D = 0b01,
             MANDELBROT_F = 0b10,
             MANDELBROT_D = 0b11,
             JULIA_F = 0b100,
-            JULIA_D = 0b101
+            JULIA_D = 0b101,
+            NEWTON_F = 0b110,
+            NEWTON_D = 0b111,
         };
 
         enum class _RenderChange
@@ -312,6 +344,38 @@ namespace GLFractal
             _fractals.juliaD.setFloat3("color", _color);
             _fractals.juliaD.setFloat("colorCount", _colorCount);
             _fractals.juliaD.setDouble2("constant", _constant);
+
+            _fractals.newtonCoefF = Shader("shader.vert", "newton_coef_f.frag", [](Shader& shader)
+                {
+                    shader.use();
+                    shader.setFloat("scale", (float)_scale);
+                    shader.setFloat2("center", (Vec2)_center);
+                    shader.setInt("iter", _iterations / 10);
+                    shader.setFloat3("color", _color);
+                    shader.setFloat2Array("roots", sizeof(_roots), _roots);
+                    shader.setInt("rootCount", _rootCount);
+                    shader.setFloat2Array("coefs", sizeof(_coefs), _coefs);
+                    shader.setInt("coefCount", _coefCount);
+                });
+            if (!_fractals.newtonCoefF.isCreated())
+                return GLFResult::SHADER_INIT_ERROR;
+            _fractals.newtonCoefF.update();
+
+            _fractals.newtonCoefD = Shader("shader.vert", "newton_coef_d.frag", [](Shader& shader)
+                {
+                    shader.use();
+                    shader.setFloat("scale", (float)_scale);
+                    shader.setFloat2("center", (Vec2)_center);
+                    shader.setInt("iter", _iterations / 10);
+                    shader.setFloat3("color", _color);
+                    shader.setFloat2Array("roots", sizeof(_roots), _roots);
+                    shader.setInt("rootCount", _rootCount);
+                    shader.setFloat2Array("coefs", sizeof(_coefs), _coefs);
+                    shader.setInt("coefCount", _coefCount);
+                });
+            if (!_fractals.newtonCoefD.isCreated())
+                return GLFResult::SHADER_INIT_ERROR;
+            _fractals.newtonCoefD.update();
 
             return GLFResult::OK;
         }
@@ -480,6 +544,8 @@ namespace GLFractal
             else _changeFractal(window);
 
             _resetRenderParam(window);
+
+            _changeCoefs(window);
         }
 
         _RenderChange _toggleFloatDouble(GLFWwindow* window)
@@ -598,6 +664,11 @@ namespace GLFractal
                 _frac = Fractal::JULIA;
                 return _RenderChange::MAIN;
             }
+            if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+            {
+                _frac = Fractal::NEWTON;
+                return _RenderChange::MAIN;
+            }
             if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
             {
                 _frac = Fractal::HELP;
@@ -660,54 +731,149 @@ namespace GLFractal
             return _RenderChange::SELECTOR;
         }
 
+        _RenderChange _changeCoefs(GLFWwindow* window)
+        {
+            bool shiftDown = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+            bool rmb = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+
+            static bool lastRMB = false;
+            bool curRS = rmb && shiftDown;
+
+            if (rmb != lastRMB && curRS)
+            {
+                lastRMB = rmb;
+                Vec2 fracPos = Vec2(
+                    (float)((lastMousePos.x - _VIEW_WIDTH / 2) / _VIEW_WIDTH * _scale - _center.x),
+                    (float)((lastMousePos.y - _VIEW_HEIGHT / 2) / _VIEW_HEIGHT * -_scale - _center.y)
+                );
+
+                if (_rootCount != 0)
+                {
+                    int closest = 0;
+                    float distance = (fracPos - _roots[0]).length();
+                    for (int i = 1; i < _rootCount; i++)
+                    {
+                        float newDist = (fracPos - _roots[i]).length();
+                        if (newDist < distance)
+                        {
+                            distance = newDist;
+                            closest = i;
+                        }
+                    }
+                    if (distance < 0.007 * _scale)
+                    {
+                        _rootCount--;
+                        for (int i = closest; i < _rootCount; i++)
+                            _roots[i] = _roots[i + 1];
+                        _updateCoefs();
+                        return _RenderChange::MAIN;
+                    }
+                }
+                if (_rootCount < _MAX_ROOTS)
+                {
+                    _roots[_rootCount] = fracPos;
+                    _rootCount++;
+                    _updateCoefs();
+                    return _RenderChange::MAIN;
+                }
+                return _RenderChange::INVALID;
+            }
+
+            lastRMB = rmb;
+            return _RenderChange::NONE;
+        }
+
         void _mouseMoveCallback(GLFWwindow* window, double x, double y)
         {
             // calculating mouse movement
-            static DVec2 last;
             DVec2 current = DVec2(x, y);
-            DVec2 delta = current - last;
-            last = current;
+            DVec2 delta = current - lastMousePos;
+            lastMousePos = current;
 
             bool spaceDown = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+            bool shiftDown = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+            bool lmb = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+            bool rmb = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+
+            static bool lastRMB = false;
+            bool curRS = rmb && shiftDown;
 
             if (!spaceDown && current.x > _VIEW_WIDTH && current.y > _SMALL_HEIGHT_OFFSET)
             {
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                if (lmb)
                 {
                     DVec2 relCur = current - DVec2(_VIEW_WIDTH, _SMALL_HEIGHT_OFFSET);
-                    _constant = DVec2((relCur.x - _SMALL_WIDTH / 2) / _SMALL_WIDTH * _selScale - _selCenter.x, (relCur.y - _SMALL_WIDTH / 2) / _SMALL_WIDTH * -_selScale - _selCenter.y);
+                    _constant = DVec2(
+                        (relCur.x - _SMALL_WIDTH / 2) / _SMALL_WIDTH * _selScale - _selCenter.x,
+                        (relCur.y - _SMALL_WIDTH / 2) / _SMALL_WIDTH * -_selScale - _selCenter.y);
                 }
+                return;
+            }
+
+            if (lmb && shiftDown)
+            {
+                Vec2 fracPos = Vec2(
+                    (float)((lastMousePos.x - _VIEW_WIDTH / 2) / _VIEW_WIDTH * _scale - _center.x),
+                    (float)((lastMousePos.y - _VIEW_HEIGHT / 2) / _VIEW_HEIGHT * -_scale - _center.y)
+                );
+
+                if (_rootHold < 0)
+                {
+                    if (_rootCount == 0)
+                        return;
+                    int closest = 0;
+                    float distance = (fracPos - _roots[0]).length();
+                    for (int i = 1; i < _rootCount; i++)
+                    {
+                        float newDist = (fracPos - _roots[i]).length();
+                        if (newDist < distance)
+                        {
+                            distance = newDist;
+                            closest = i;
+                        }
+                    }
+                    if (distance < 0.007 * _scale)
+                        _rootHold = closest;
+                }
+                _roots[_rootHold] = fracPos;
+                _updateCoefs();
+                return;
             }
             else
             {
-                DVec2 newCenterDifference{};
-                double newScaleMultiplier = 1.0;
+                _rootHold = -1;
+            }
 
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                {
-                    // moving image
-                    newCenterDifference = DVec2(delta.x / _VIEW_WIDTH, delta.y / _VIEW_HEIGHT * -1);
-                }
-                else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-                {
-                    // zooming image
-                    newScaleMultiplier *= pow(0.99, -delta.y);
-                }
-                else
-                {
-                    return;
-                }
+            if (shiftDown)
+                return;
 
-                if (spaceDown)
-                {
-                    _selScale *= (float)newScaleMultiplier;
-                    _selCenter += (Vec2)(newCenterDifference * ((double)_VIEW_WIDTH / _SMALL_WIDTH) * _selScale);
-                }
-                else
-                {
-                    _scale *= newScaleMultiplier;
-                    _center += newCenterDifference * _scale;
-                }
+            DVec2 newCenterDifference{};
+            double newScaleMultiplier = 1.0;
+
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+            {
+                // moving image
+                newCenterDifference = DVec2(delta.x / _VIEW_WIDTH, delta.y / _VIEW_HEIGHT * -1);
+            }
+            else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+            {
+                // zooming image
+                newScaleMultiplier *= pow(0.99, -delta.y);
+            }
+            else
+            {
+                return;
+            }
+
+            if (spaceDown)
+            {
+                _selScale *= (float)newScaleMultiplier;
+                _selCenter += (Vec2)(newCenterDifference * ((double)_VIEW_WIDTH / _SMALL_WIDTH) * _selScale);
+            }
+            else
+            {
+                _scale *= newScaleMultiplier;
+                _center += newCenterDifference * _scale;
             }
         }
 
@@ -761,6 +927,9 @@ namespace GLFractal
             case Fractal::HELP:
                 fractal = "Help page";
                 break;
+            case Fractal::NEWTON:
+                fractal = "Newton fractal";
+                break;
             default:
                 fractal = "Unknown";
                 break;
@@ -777,7 +946,7 @@ namespace GLFractal
             _renderText("Fractal: " + fractal, lm, t -= 30, scale);
 
             _renderText("Main:", lm, t -= 30, scale);
-            _renderText("Iterations: " + to_string(_iterations), ls, t -= 25, scale);
+            _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= 25, scale);
             _renderText("Color count: " + to_string((int)_colorCount), ls, t -= 25, scale);
             _renderText("Use double: " + useDouble, ls, t -= 25, scale);
             _renderText("Scale: " + to_string(1 / _scale), ls, t -= 25, scale);
@@ -789,7 +958,6 @@ namespace GLFractal
             _renderText("Color count: " + to_string((int)_selColorCount), ls, t -= 25, scale);
             _renderText("Scale: " + to_string(1 / _selScale), ls, t -= 25, scale);
             _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= 25, scale);
-
         }
 
         void _renderHelp()
@@ -841,6 +1009,7 @@ namespace GLFractal
             _renderText("20000  : Ctrl + O", c1s, t -= 20, scales);
             _renderText("100000 : Ctrl + Shift + 0", c1s, t -= 20, scales);
             _renderText("200000 : Ctrl + Shift + O", c1s, t -= 20, scales);
+            _renderText("newton fractal uses only 1/10 of iterations", c1s, t -= 20, scales);
 
             t = 950;
 
@@ -865,6 +1034,24 @@ namespace GLFractal
             _renderText("iterations       : Ctrl + R", c2s, t -= 20, scales);
             _renderText("number of colors : Alt + R", c2s, t -= 20, scales);
             _renderText("all              : Shift + R", c2s, t -= 20, scales);
+        }
+
+        void _updateCoefs()
+        {
+            _coefCount = _rootCount + 1;
+
+            // set the _coefs to 1
+            for (int i = 0; i < _rootCount; i++)
+                _coefs[i] = Vec2(0, 0);
+            _coefs[_rootCount] = Vec2(1, 0);
+
+            // calculate coefs as multiplication of all degree 2 polynomials in _roots
+            for (int i = _rootCount; i > 0; i--)
+            {
+                for (int j = i - 1; j < _rootCount; j++)
+                    _coefs[j] = Complex::cMul(_coefs[j], _roots[i - 1] * -1) + _coefs[j + 1];
+                _coefs[_rootCount] = Complex::cMul(_coefs[_rootCount], _roots[i - 1] * -1);
+            }
         }
     }
 
@@ -949,6 +1136,12 @@ namespace GLFractal
             case _Fractal::HELP_D:
                 _renderHelp();
                 break;
+            case _Fractal::NEWTON_F:
+                _fractals.newtonCoefF.update();
+                break;
+            case _Fractal::NEWTON_D:
+                _fractals.newtonCoefD.update();
+                break;
             default:
                 return GLFResult::INVALID_FRACTAL;
             }
@@ -994,6 +1187,8 @@ namespace GLFractal
         _fractals.mandelbrotSelector.free();
         _fractals.juliaF.free();
         _fractals.juliaD.free();
+        _fractals.newtonCoefF.free();
+        _fractals.newtonCoefD.free();
 
         _fontShader.free();
 

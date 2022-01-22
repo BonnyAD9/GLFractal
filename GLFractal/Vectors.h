@@ -58,6 +58,11 @@ public:
 	/// <returns>string representation of this vector</returns>
 	string toString();
 	/// <summary>
+	/// Calculates length of this vector
+	/// </summary>
+	/// <returns>length of this vector</returns>
+	float length();
+	/// <summary>
 	/// component x
 	/// </summary>
 	float x;
@@ -101,6 +106,11 @@ public:
 	/// <returns>string representation of this vector</returns>
 	string toString();
 	/// <summary>
+	/// Calculates length of this vector
+	/// </summary>
+	/// <returns>length of this vector</returns>
+	double length();
+	/// <summary>
 	/// component x
 	/// </summary>
 	double x;
@@ -143,6 +153,11 @@ public:
 	/// </summary>
 	/// <returns>string representation of this vector</returns>
 	string toString();
+	/// <summary>
+	/// Calculates length of this vector
+	/// </summary>
+	/// <returns>length of this vector</returns>
+	float length();
 	/// <summary>
 	/// component x
 	/// </summary>
@@ -189,6 +204,11 @@ public:
 	/// </summary>
 	/// <returns>string representation of this vector</returns>
 	string toString();
+	/// <summary>
+	/// Calculates length of this vector
+	/// </summary>
+	/// <returns>length of this vector</returns>
+	float length();
 	/// <summary>
 	/// component x
 	/// </summary>

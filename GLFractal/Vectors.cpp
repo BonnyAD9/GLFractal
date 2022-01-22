@@ -1,5 +1,7 @@
 #include "Vectors.h"
 
+#include <cmath>
+
 using std::to_string;
 
 //==<<Vec2>>==//
@@ -41,6 +43,11 @@ Vec2 Vec2::operator*(float num)
 string Vec2::toString()
 {
     return "(" + to_string(x) + ", " + to_string(y) + ")";
+}
+
+float Vec2::length()
+{
+    return sqrtf(x * x + y * y);
 }
 
 
@@ -85,6 +92,14 @@ string DVec2::toString()
     return "(" + to_string(x) + ", " + to_string(y) + ")";
 }
 
+double DVec2::length()
+{
+    return sqrt(x * x + y * y);
+}
+
+
+//==<<IVec2>>==//
+
 IVec2::IVec2() : x(0), y(0) {}
 IVec2::IVec2(int x, int y) : x(x), y(y) {}
 IVec2::IVec2(Vec2 vec) : x((int)vec.x), y((int)vec.y) {}
@@ -122,6 +137,11 @@ IVec2 IVec2::operator*(int num)
 string IVec2::toString()
 {
     return "(" + to_string(x) + ", " + to_string(y) + ")";
+}
+
+float IVec2::length()
+{
+    return sqrtf((float)(x * x + y * y));
 }
 
 
@@ -166,6 +186,11 @@ Vec3 Vec3::operator*(float num)
 string Vec3::toString()
 {
     return "(" + to_string(x) + ", " + to_string(y) + ", " + to_string(z) + ")";
+}
+
+float Vec3::length()
+{
+    return sqrtf(x * x + y * y + z * z);
 }
 
 //==<<Mat4>>==//

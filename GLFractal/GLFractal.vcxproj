@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="complex.cpp" />
     <ClCompile Include="FontTexture.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="GLFractal.cpp" />
@@ -195,6 +196,8 @@
     <None Include="mandelbrot_f.frag" />
     <None Include="mandelbrot_d.frag" />
     <None Include="mandelbrot_selector.frag" />
+    <None Include="newton_coef_d.frag" />
+    <None Include="newton_coef_f.frag" />
     <None Include="shader.vert" />
     <None Include="text.frag" />
     <None Include="text.vert" />
@@ -203,6 +206,7 @@
     <Image Include="yel_blue_1024.png" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="complex.h" />
     <ClInclude Include="FontTexture.h" />
     <ClInclude Include="GLFractal.h" />
     <ClInclude Include="Shader.h" />
