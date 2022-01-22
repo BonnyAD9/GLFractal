@@ -12,6 +12,7 @@ namespace GLFractal
 	/// </summary>
 	enum class Fractal
 	{
+		HELP = 0b0,
 		MANDELBROT = 0b1,
 		JULIA = 0b10,
 	};

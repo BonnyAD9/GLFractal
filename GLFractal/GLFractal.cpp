@@ -151,11 +151,16 @@ namespace GLFractal
 
         void _renderInfo(double deltaTime);
 
+        void _renderHelp();
+
         enum class _Fractal
         {
+            HELP = 0b0,
             MANDELBROT = 0b1,
             JULIA = 0b10,
 
+            HELP_F = 0b00,
+            HELP_D = 0b01,
             MANDELBROT_F = 0b10,
             MANDELBROT_D = 0b11,
             JULIA_F = 0b100,
@@ -593,6 +598,11 @@ namespace GLFractal
                 _frac = Fractal::JULIA;
                 return _RenderChange::MAIN;
             }
+            if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
+            {
+                _frac = Fractal::HELP;
+                return _RenderChange::MAIN;
+            }
             return _RenderChange::NONE;
         }
 
@@ -748,6 +758,9 @@ namespace GLFractal
             case Fractal::JULIA:
                 fractal = "Julia Set";
                 break;
+            case Fractal::HELP:
+                fractal = "Help page";
+                break;
             default:
                 fractal = "Unknown";
                 break;
@@ -777,6 +790,81 @@ namespace GLFractal
             _renderText("Scale: " + to_string(1 / _selScale), ls, t -= 25, scale);
             _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= 25, scale);
 
+        }
+
+        void _renderHelp()
+        {
+            const float scalem = 1.0 / 2.0;
+            const float scales = 4.0 / 9.0;
+
+            const float c1m = 10;
+            const float c1s = c1m + 10;
+            const float c2m = _VIEW_WIDTH / 2 + 10;
+            const float c2s = c2m + 10;
+            float t = 950;
+
+            _renderText("Key bindings", c1m - 5, t, 1);
+
+            _renderText("View (space for selector):", c1m, t -= 40, scalem);
+            _renderText("move center : LMB", c1s, t -= 25, scales);
+            _renderText("zoom in     : RMB up", c1s, t -= 20, scales);
+            _renderText("zoom out    : RMB down", c1s, t -= 20, scales);
+
+            _renderText("Fractals:", c1m, t -= 40, scalem);
+            _renderText("help           : F1", c1s, t -= 25, scales);
+            _renderText("mandelbrot set : 1", c1s, t -= 20, scales);
+            _renderText("julia set      : 2", c1s, t -= 20, scales);
+            
+            _renderText("Selector:", c1m, t -= 40, scalem);
+            _renderText("choose point : LMB", c1s, t -= 25, scales);
+
+            _renderText("Iterations (space for selector):", c1m, t -= 40, scalem);
+            _renderText("100    : Ctrl + 1", c1s, t -= 25, scales);
+            _renderText("200    : Ctrl + 2", c1s, t -= 20, scales);
+            _renderText("300    : Ctrl + 3", c1s, t -= 20, scales);
+            _renderText("400    : Ctrl + 4", c1s, t -= 20, scales);
+            _renderText("500    : Ctrl + 5", c1s, t -= 20, scales);
+            _renderText("600    : Ctrl + 6", c1s, t -= 20, scales);
+            _renderText("700    : Ctrl + 7", c1s, t -= 20, scales);
+            _renderText("800    : Ctrl + 8", c1s, t -= 20, scales);
+            _renderText("900    : Ctrl + 9", c1s, t -= 20, scales);
+            _renderText("1000   : Ctrl + Shift + 1", c1s, t -= 20, scales);
+            _renderText("2000   : Ctrl + Shift + 2", c1s, t -= 20, scales);
+            _renderText("3000   : Ctrl + Shift + 3", c1s, t -= 20, scales);
+            _renderText("4000   : Ctrl + Shift + 4", c1s, t -= 20, scales);
+            _renderText("5000   : Ctrl + Shift + 5", c1s, t -= 20, scales);
+            _renderText("6000   : Ctrl + Shift + 6", c1s, t -= 20, scales);
+            _renderText("7000   : Ctrl + Shift + 7", c1s, t -= 20, scales);
+            _renderText("8000   : Ctrl + Shift + 8", c1s, t -= 20, scales);
+            _renderText("9000   : Ctrl + Shift + 9", c1s, t -= 20, scales);
+            _renderText("10000  : Ctrl + 0", c1s, t -= 20, scales);
+            _renderText("20000  : Ctrl + O", c1s, t -= 20, scales);
+            _renderText("100000 : Ctrl + Shift + 0", c1s, t -= 20, scales);
+            _renderText("200000 : Ctrl + Shift + O", c1s, t -= 20, scales);
+
+            t = 950;
+
+            _renderText("Number of colors (space for selector):", c2m, t -= 40, scalem);
+            _renderText("2    : Alt + 1", c2s, t -= 25, scales);
+            _renderText("4    : Alt + 2", c2s, t -= 20, scales);
+            _renderText("8    : Alt + 3", c2s, t -= 20, scales);
+            _renderText("16   : Alt + 4", c2s, t -= 20, scales);
+            _renderText("32   : Alt + 5", c2s, t -= 20, scales);
+            _renderText("64   : Alt + 6", c2s, t -= 20, scales);
+            _renderText("128  : Alt + 7", c2s, t -= 20, scales);
+            _renderText("256  : Alt + 8", c2s, t -= 20, scales);
+            _renderText("512  : Alt + 9", c2s, t -= 20, scales);
+            _renderText("1024 : Alt + 0", c2s, t -= 20, scales);
+            _renderText("2048 : Alt + O", c2s, t -= 20, scales);
+
+            _renderText("Render:", c2m, t -= 40, scalem);
+            _renderText("toggle double : Tab", c2s, t -= 25, scales);
+
+            _renderText("Reset (space for selector):", c2m, t -= 40, scalem);
+            _renderText("zoom and center  : R", c2s, t -= 25, scales);
+            _renderText("iterations       : Ctrl + R", c2s, t -= 20, scales);
+            _renderText("number of colors : Alt + R", c2s, t -= 20, scales);
+            _renderText("all              : Shift + R", c2s, t -= 20, scales);
         }
     }
 
@@ -854,6 +942,12 @@ namespace GLFractal
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindVertexArray(_buffers.selVAO);
                 _fractals.mandelbrotSelector.update();
+                break;
+            case _Fractal::HELP_F:
+                _renderHelp();
+                break;
+            case _Fractal::HELP_D:
+                _renderHelp();
                 break;
             default:
                 return GLFResult::INVALID_FRACTAL;

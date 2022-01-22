@@ -4,11 +4,12 @@ zoom in     : RMB up
 zoom out    : RMB down
 
 Fractals
-Mandelbrot set : 1
-Julia sets     : 2
+help           : F1
+mandelbrot set : 1
+julia sets     : 2
 
 Selector:
-Choose point : LMB
+choose point : LMB
 
 Iterations (hold space to use it for selector):
 100    : Ctrl + 1
@@ -45,12 +46,13 @@ Number of colors (hold space to use it for selector):
 256  : Alt + 8
 512  : Alt + 9
 1024 : Alt + 0
+2048 : Alt + O
 
 Render:
-Toggle double : Tab
+toggle double : Tab
 
 Reset (hold space to use it for selector):
-Zoom and center  : R
-Iterations       : Ctrl + R
-Number of colors : Alt + R
-All              : Shift + R
+zoom and center  : R
+iterations       : Ctrl + R
+number of colors : Alt + R
+all              : Shift + R
