@@ -1034,6 +1034,10 @@ namespace GLFractal
             _renderText("iterations       : Ctrl + R", c2s, t -= 20, scales);
             _renderText("number of colors : Alt + R", c2s, t -= 20, scales);
             _renderText("all              : Shift + R", c2s, t -= 20, scales);
+
+            _renderText("Newton fractal:", c2m, t -= 40, scalem);
+            _renderText("add/remove point : Shift + RMB", c2s, t -= 25, scales);
+            _renderText("move point       : Shift + LMB", c2s, t -= 20, scales);
         }
 
         void _updateCoefs()

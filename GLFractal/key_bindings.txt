@@ -56,3 +56,7 @@ zoom and center  : R
 iterations       : Ctrl + R
 number of colors : Alt + R
 all              : Shift + R
+
+Newton fractal:
+add/remove point : Shift + RMB
+move point       : Shift + LMB
