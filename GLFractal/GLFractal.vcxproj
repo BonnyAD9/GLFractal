@@ -189,7 +189,7 @@
     <Content Include="text.vert">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="mandelbrot_f.frag">
+    <Content Include="newton_coef_f.frag">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="newton_coef_d.frag">
