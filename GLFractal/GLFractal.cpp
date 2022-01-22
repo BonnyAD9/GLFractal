@@ -794,8 +794,8 @@ namespace GLFractal
 
         void _renderHelp()
         {
-            const float scalem = 1.0 / 2.0;
-            const float scales = 4.0 / 9.0;
+            const float scalem = 1.0f / 2.0f;
+            const float scales = 4.0f / 9.0f;
 
             const float c1m = 10;
             const float c1s = c1m + 10;
