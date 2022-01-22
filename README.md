@@ -3,6 +3,7 @@ App that renders fractals using OpenGL
 ## Supported fractals:
 - Mandelbrot set
 - Julia set
+- Newton fractal
 ### Mandelbrot set
 ![image](https://user-images.githubusercontent.com/46282097/150401761-c61f3068-0f2c-4c82-ab65-69f9f372ec77.png)
 ### Julia set
