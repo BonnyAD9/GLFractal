@@ -147,7 +147,7 @@ namespace GLFractal
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
 
-        void _renderText(string text, float x, float y);
+        void _renderText(string text, float x, float y, float scale);
 
         void _renderInfo(double deltaTime);
 
