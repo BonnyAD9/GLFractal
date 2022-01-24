@@ -128,6 +128,20 @@ public:
 	/// <param name="arr">array</param>
 	void setFloat2Array(const char* name, const int length, const Vec2* arr);
 	/// <summary>
+	/// Sets uniform vec2 array from DVec2 array
+	/// </summary>
+	/// <param name="name">name of variable</param>
+	/// <param name="length"length of the array></param>
+	/// <param name="arr">array</param>
+	void setFloat2Array(const char* name, const int length, const DVec2* arr);
+	/// <summary>
+	/// Sets uniform dvec2 array
+	/// </summary>
+	/// <param name="name">name of variable</param>
+	/// <param name="length"length of the array></param>
+	/// <param name="arr">array</param>
+	void setDouble2Array(const char* name, const int length, const DVec2* arr);
+	/// <summary>
 	/// Function that updates the value of shader
 	/// </summary>
 	function<void(Shader &shader)> updateFun;

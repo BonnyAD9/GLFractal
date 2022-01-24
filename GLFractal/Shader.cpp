@@ -122,6 +122,22 @@ void Shader::setFloat2Array(const char* name, const int length, const Vec2* arr)
 	glUniform2fv(glGetUniformLocation(_id, name), length, (GLfloat*)arr);
 }
 
+void Shader::setFloat2Array(const char* name, const int length, const DVec2* arr)
+{
+	unique_ptr<float> converted{new float[length * 2]};
+	for (int i = 0; i < length; i++)
+	{
+		converted.get()[i * 2] = (float)arr[i].x;
+		converted.get()[i * 2 + 1] = (float)arr[i].y;
+	}
+	glUniform2fv(glGetUniformLocation(_id, name), length, converted.get());
+}
+
+void Shader::setDouble2Array(const char* name, const int length, const DVec2* arr)
+{
+	glUniform2dv(glGetUniformLocation(_id, name), length, (GLdouble*)arr);
+}
+
 bool createShaderFromFile(const char* path, GLuint* shader, GLenum type)
 {
 	ifstream file(path);
