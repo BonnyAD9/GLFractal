@@ -149,7 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="complex.cpp" />
+    <ClCompile Include="Complex.cpp" />
     <ClCompile Include="FontTexture.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="GLFractal.cpp" />
@@ -212,7 +212,7 @@
     <Image Include="yel_blue_1024.png" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="complex.h" />
+    <ClInclude Include="Complex.h" />
     <ClInclude Include="FontTexture.h" />
     <ClInclude Include="GLFractal.h" />
     <ClInclude Include="Shader.h" />

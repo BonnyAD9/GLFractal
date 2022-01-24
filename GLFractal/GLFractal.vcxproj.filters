@@ -36,7 +36,7 @@
     <ClCompile Include="GLFractal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="complex.cpp">
+    <ClCompile Include="Complex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -93,7 +93,7 @@
     <ClInclude Include="GLFractal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="complex.h">
+    <ClInclude Include="Complex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

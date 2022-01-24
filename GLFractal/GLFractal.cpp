@@ -10,7 +10,7 @@
 #include "Shader.h"
 #include "FontTexture.h"
 #include "Vectors.h"
-#include "complex.h"
+#include "Complex.h"
 
 namespace GLFractal
 {
