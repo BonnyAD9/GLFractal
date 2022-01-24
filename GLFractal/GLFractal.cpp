@@ -139,6 +139,7 @@ namespace GLFractal
             1, 2, 3
         };
 
+        // Indices of triangles for rectangle (indexes in verices array)
         const unsigned int _textIndices[] =
         {
             0, 1, 3,
@@ -248,102 +249,79 @@ namespace GLFractal
             _fractals.mandelbrotF = Shader("shader.vert", "mandelbrot_f.frag", [](Shader& shader)
             {
                 shader.use();
+                shader.setInt("texture1", 0);
                 shader.setFloat("scale", (float)_scale);
                 shader.setFloat2("center", (Vec2)_center);
                 shader.setInt("iter", _iterations);
                 shader.setFloat("colorCount", _colorCount);
+                shader.setFloat3("color", _color);
             });
             if (!_fractals.mandelbrotF.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
-            _fractals.mandelbrotF.use();
-            _fractals.mandelbrotF.setInt("texture1", 0);
-            _fractals.mandelbrotF.setFloat("scale", (float)_scale);
-            _fractals.mandelbrotF.setFloat2("center", (Vec2)_center);
-            _fractals.mandelbrotF.setInt("iter", _iterations);
-            _fractals.mandelbrotF.setFloat("colorCount", _colorCount);
-            _fractals.mandelbrotF.setFloat3("color", _color);
+            _fractals.mandelbrotF.update();
 
             // double mandelbrot shader
             _fractals.mandelbrotD = Shader("shader.vert", "mandelbrot_d.frag", [](Shader& shader)
                 {
                     shader.use();
+                    shader.setInt("texutre1", 0);
                     shader.setDouble("scale", _scale);
                     shader.setDouble2("center", _center);
                     shader.setInt("iter", _iterations);
                     shader.setFloat("colorCount", _colorCount);
+                    shader.setFloat3("color", _color);
                 });
             if (!_fractals.mandelbrotD.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
-            _fractals.mandelbrotD.use();
-            _fractals.mandelbrotD.setInt("texture1", 0);
-            _fractals.mandelbrotD.setDouble("scale", _scale);
-            _fractals.mandelbrotD.setDouble2("center", _center);
-            _fractals.mandelbrotD.setInt("iter", _iterations);
-            _fractals.mandelbrotD.setFloat("colorCount", _colorCount);
-            _fractals.mandelbrotD.setFloat3("color", _color);
+            _fractals.mandelbrotD.update();
 
             // selector mandelbrot set
             _fractals.mandelbrotSelector = Shader("shader.vert", "mandelbrot_selector.frag", [](Shader& shader)
                 {
                     shader.use();
+                    shader.setInt("texture1", 0);
                     shader.setFloat("scale", _selScale);
                     shader.setFloat2("center", _selCenter);
                     shader.setInt("iter", _selIterations);
+                    shader.setFloat3("color", _color);
                     shader.setFloat("colorCount", _selColorCount);
                     shader.setFloat2("constant", (Vec2)_constant);
                 });
             if (!_fractals.mandelbrotSelector.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
-            _fractals.mandelbrotSelector.use();
-            _fractals.mandelbrotSelector.setInt("texture1", 0);
-            _fractals.mandelbrotSelector.setFloat("scale", _selScale);
-            _fractals.mandelbrotSelector.setFloat2("center", _selCenter);
-            _fractals.mandelbrotSelector.setInt("iter", _selIterations);
-            _fractals.mandelbrotSelector.setFloat3("color", _color);
-            _fractals.mandelbrotSelector.setFloat("colorCount", _selColorCount);
-            _fractals.mandelbrotSelector.setFloat2("constant", (Vec2)_constant);
+            _fractals.mandelbrotSelector.update();
 
             // float julia shader
             _fractals.juliaF = Shader("shader.vert", "julia_f.frag", [](Shader& shader)
                 {
                     shader.use();
+                    shader.setInt("texture1", 0);
                     shader.setFloat("scale", (float)_scale);
                     shader.setFloat2("center", (Vec2)_center);
                     shader.setInt("iter", _iterations);
+                    shader.setFloat3("color", _color);
                     shader.setFloat("colorCount", _colorCount);
                     shader.setFloat2("constant", (Vec2)_constant);
                 });
             if (!_fractals.juliaF.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
-            _fractals.juliaF.use();
-            _fractals.juliaF.setInt("texture1", 0);
-            _fractals.juliaF.setFloat("scale", (float)_scale);
-            _fractals.juliaF.setFloat2("center", (Vec2)_center);
-            _fractals.juliaF.setInt("iter", _iterations);
-            _fractals.juliaF.setFloat3("color", _color);
-            _fractals.juliaF.setFloat("colorCount", _colorCount);
-            _fractals.juliaF.setFloat2("constant", (Vec2)_constant);
+            _fractals.juliaF.update();
 
             // double julia shader
             _fractals.juliaD = Shader("shader.vert", "julia_d.frag", [](Shader& shader)
                 {
                     shader.use();
+                    shader.setInt("texture1", 0);
                     shader.setDouble("scale", _scale);
                     shader.setDouble2("center", _center);
                     shader.setInt("iter", _iterations);
+                    shader.setFloat3("color", _color);
                     shader.setFloat("colorCount", _colorCount);
                     shader.setDouble2("constant", _constant);
                 });
             if (!_fractals.juliaF.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
-            _fractals.juliaD.use();
-            _fractals.juliaD.setInt("texture1", 0);
-            _fractals.juliaD.setDouble("scale", _scale);
-            _fractals.juliaD.setDouble2("center", _center);
-            _fractals.juliaD.setInt("iter", _iterations);
-            _fractals.juliaD.setFloat3("color", _color);
-            _fractals.juliaD.setFloat("colorCount", _colorCount);
-            _fractals.juliaD.setDouble2("constant", _constant);
+            _fractals.juliaD.update();
 
             _fractals.newtonCoefF = Shader("shader.vert", "newton_coef_f.frag", [](Shader& shader)
                 {
@@ -475,7 +453,6 @@ namespace GLFractal
             {
                 s.use();
                 s.setMatrix4("projection", _projection);
-                //s.setMatrix4("texProjection", _fontProjection);
                 s.setFloat3("textColor", _textColor);
                 _fontShader.setInt("font", 1);
 
@@ -483,13 +460,7 @@ namespace GLFractal
 
             if (!_fontShader.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
-
             _fontShader.use();
-
-            //_fontProjection = Mat4::scale(1.0f / _font.width(), 1.0f / _font.height(), 1.0f);
-            
-            // loading texture
-            //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             
             glGenTextures(1, &_buffers.fontTexture);
             glActiveTexture(GL_TEXTURE1);
