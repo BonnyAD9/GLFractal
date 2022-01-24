@@ -4,8 +4,8 @@ out vec4 FragColor;
 in vec2 TexCoord;
 
 uniform sampler2D texture1;
-uniform vec2 center;
-uniform float scale;
+uniform dvec2 center;
+uniform double scale;
 uniform int iter;
 uniform vec3 color;
 

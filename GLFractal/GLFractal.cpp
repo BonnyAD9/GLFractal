@@ -352,9 +352,9 @@ namespace GLFractal
                     shader.setFloat2("center", (Vec2)_center);
                     shader.setInt("iter", _iterations / 10);
                     shader.setFloat3("color", _color);
-                    shader.setFloat2Array("roots", sizeof(_roots), _roots);
+                    shader.setFloat2Array("roots", _MAX_ROOTS, _roots);
                     shader.setInt("rootCount", _rootCount);
-                    shader.setFloat2Array("coefs", sizeof(_coefs), _coefs);
+                    shader.setFloat2Array("coefs", _MAX_ROOTS, _coefs);
                     shader.setInt("coefCount", _coefCount);
                 });
             if (!_fractals.newtonCoefF.isCreated())
@@ -364,13 +364,13 @@ namespace GLFractal
             _fractals.newtonCoefD = Shader("shader.vert", "newton_coef_d.frag", [](Shader& shader)
                 {
                     shader.use();
-                    shader.setFloat("scale", (float)_scale);
-                    shader.setFloat2("center", (Vec2)_center);
+                    shader.setDouble("scale", _scale);
+                    shader.setDouble2("center", _center);
                     shader.setInt("iter", _iterations / 10);
                     shader.setFloat3("color", _color);
-                    shader.setFloat2Array("roots", sizeof(_roots), _roots);
+                    shader.setFloat2Array("roots", _MAX_ROOTS, _roots);
                     shader.setInt("rootCount", _rootCount);
-                    shader.setFloat2Array("coefs", sizeof(_coefs), _coefs);
+                    shader.setFloat2Array("coefs", _MAX_ROOTS, _coefs);
                     shader.setInt("coefCount", _coefCount);
                 });
             if (!_fractals.newtonCoefD.isCreated())
