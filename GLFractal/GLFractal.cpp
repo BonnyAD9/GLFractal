@@ -62,6 +62,17 @@ namespace GLFractal
         Vec3 _textColor;
         Mat4 _fontProjection;
 
+        const struct
+        {
+            const float scaleL = 1.0f;
+            const float scaleM = 0.5f;
+            const float scaleS = 4.0f / 9.0f;
+
+            const int full = 40;
+            const int extended = 25;
+            const int normal = 20;
+        } _spacing;
+
         Mat4 _projection = Mat4::orthographic(0, _WIN_WIDTH, 0, _WIN_HEIGHT, 1, -1);
 
         static DVec2 _mousePos;
@@ -318,6 +329,7 @@ namespace GLFractal
                 return GLFResult::SHADER_INIT_ERROR;
             _fractals.juliaD.update();
 
+            // newton fractal
             _fractals.newtonCoefF = Shader("shader.vert", "newton_coef_f.frag", [](Shader& shader)
                 {
                     shader.use();
@@ -334,6 +346,7 @@ namespace GLFractal
                 return GLFResult::SHADER_INIT_ERROR;
             _fractals.newtonCoefF.update();
 
+            // double newton fractal
             _fractals.newtonCoefD = Shader("shader.vert", "newton_coef_d.frag", [](Shader& shader)
                 {
                     shader.use();
@@ -952,133 +965,144 @@ namespace GLFractal
 
         void _renderInfo(double deltaTime)
         {
-            const float scale = 1.0f / 2.0f;
+            const float lm = _VIEW_WIDTH + 10;
+            const float ls = lm + 10;
+            float t = _VIEW_HEIGHT - 20;
 
-            double fps = 1 / deltaTime;
+            string useDouble = _useDouble ? "yes" : "no";
 
-            string fractal;
             switch (_frac)
             {
+            case Fractal::HELP:
+                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+
+                _renderText("Fractal: Help page", lm, t -= _spacing.full, _spacing.scaleM);
+                break;
             case Fractal::MANDELBROT:
-                fractal = "Mandelbrot Set";
+                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+
+                _renderText("Fractal: Mandelbrot set", lm, t -= _spacing.full, _spacing.scaleM);
+
+                _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
+                _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(1 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::JULIA:
-                fractal = "Julia Set";
-                break;
-            case Fractal::HELP:
-                fractal = "Help page";
+                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+
+                _renderText("Fractal: Julia set", lm, t -= _spacing.full, _spacing.scaleM);
+
+                _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
+                _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(1 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Number: " + to_string(_constant.x) + " + " + to_string(_constant.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+
+                _renderText("Selector:", lm, t -= _spacing.full, _spacing.scaleM);
+                _renderText("Iterations: " + to_string(_selIterations), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Color count: " + to_string((int)_selColorCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(1 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::NEWTON:
-                fractal = "Newton fractal";
+                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+
+                _renderText("Fractal: Newton fractal", lm, t -= _spacing.full, _spacing.scaleM);
+
+                _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
+                _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(1 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             default:
-                fractal = "Unknown";
+                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+
+                _renderText("Fractal: Unknown", lm, t -= _spacing.full, _spacing.scaleM);
                 break;
             }
-            
-            string useDouble = _useDouble ? "yes" : "no";
-            
-            float lm = 1010;
-            float ls = 1020;
-            float t = 980;
-
-            _renderText("Fps: " + to_string((int)fps), lm, t, scale);
-
-            _renderText("Fractal: " + fractal, lm, t -= 30, scale);
-
-            _renderText("Main:", lm, t -= 30, scale);
-            _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= 25, scale);
-            _renderText("Color count: " + to_string((int)_colorCount), ls, t -= 25, scale);
-            _renderText("Use double: " + useDouble, ls, t -= 25, scale);
-            _renderText("Scale: " + to_string(1 / _scale), ls, t -= 25, scale);
-            _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= 25, scale);
-            _renderText("Number: " + to_string(_constant.x) + " + " + to_string(_constant.y) + "i", ls, t -= 25, scale);
-
-            _renderText("Selector:", lm, t -= 30, scale);
-            _renderText("Iterations: " + to_string(_selIterations), ls, t -= 25, scale);
-            _renderText("Color count: " + to_string((int)_selColorCount), ls, t -= 25, scale);
-            _renderText("Scale: " + to_string(1 / _selScale), ls, t -= 25, scale);
-            _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= 25, scale);
         }
 
         void _renderHelp()
         {
-            const float scalem = 1.0f / 2.0f;
-            const float scales = 4.0f / 9.0f;
-
             const float c1m = 10;
             const float c1s = c1m + 10;
             const float c2m = _VIEW_WIDTH / 2 + 10;
             const float c2s = c2m + 10;
-            float t = 950;
+            float t = _VIEW_HEIGHT - 50;
 
-            _renderText("Key bindings", c1m - 5, t, 1);
+            _renderText("Key bindings", c1m - 5, t, _spacing.scaleL);
 
-            _renderText("View (space for selector):", c1m, t -= 40, scalem);
-            _renderText("move center : LMB", c1s, t -= 25, scales);
-            _renderText("zoom in     : RMB up", c1s, t -= 20, scales);
-            _renderText("zoom out    : RMB down", c1s, t -= 20, scales);
+            _renderText("View (space for selector):", c1m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("move center : LMB", c1s, t -= _spacing.extended, _spacing.scaleS);
+            _renderText("zoom in     : RMB up", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("zoom out    : RMB down", c1s, t -= _spacing.normal, _spacing.scaleS);
 
-            _renderText("Fractals:", c1m, t -= 40, scalem);
-            _renderText("help           : F1", c1s, t -= 25, scales);
-            _renderText("mandelbrot set : 1", c1s, t -= 20, scales);
-            _renderText("julia set      : 2", c1s, t -= 20, scales);
+            _renderText("Fractals:", c1m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("help           : F1", c1s, t -= _spacing.extended, _spacing.scaleS);
+            _renderText("mandelbrot set : 1", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("julia set      : 2", c1s, t -= _spacing.normal, _spacing.scaleS);
             
-            _renderText("Selector:", c1m, t -= 40, scalem);
-            _renderText("choose point : LMB", c1s, t -= 25, scales);
+            _renderText("Selector:", c1m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("choose point : LMB", c1s, t -= _spacing.extended, _spacing.scaleS);
 
-            _renderText("Iterations (space for selector):", c1m, t -= 40, scalem);
-            _renderText("100    : Ctrl + 1", c1s, t -= 25, scales);
-            _renderText("200    : Ctrl + 2", c1s, t -= 20, scales);
-            _renderText("300    : Ctrl + 3", c1s, t -= 20, scales);
-            _renderText("400    : Ctrl + 4", c1s, t -= 20, scales);
-            _renderText("500    : Ctrl + 5", c1s, t -= 20, scales);
-            _renderText("600    : Ctrl + 6", c1s, t -= 20, scales);
-            _renderText("700    : Ctrl + 7", c1s, t -= 20, scales);
-            _renderText("800    : Ctrl + 8", c1s, t -= 20, scales);
-            _renderText("900    : Ctrl + 9", c1s, t -= 20, scales);
-            _renderText("1000   : Ctrl + Shift + 1", c1s, t -= 20, scales);
-            _renderText("2000   : Ctrl + Shift + 2", c1s, t -= 20, scales);
-            _renderText("3000   : Ctrl + Shift + 3", c1s, t -= 20, scales);
-            _renderText("4000   : Ctrl + Shift + 4", c1s, t -= 20, scales);
-            _renderText("5000   : Ctrl + Shift + 5", c1s, t -= 20, scales);
-            _renderText("6000   : Ctrl + Shift + 6", c1s, t -= 20, scales);
-            _renderText("7000   : Ctrl + Shift + 7", c1s, t -= 20, scales);
-            _renderText("8000   : Ctrl + Shift + 8", c1s, t -= 20, scales);
-            _renderText("9000   : Ctrl + Shift + 9", c1s, t -= 20, scales);
-            _renderText("10000  : Ctrl + 0", c1s, t -= 20, scales);
-            _renderText("20000  : Ctrl + O", c1s, t -= 20, scales);
-            _renderText("100000 : Ctrl + Shift + 0", c1s, t -= 20, scales);
-            _renderText("200000 : Ctrl + Shift + O", c1s, t -= 20, scales);
-            _renderText("newton fractal uses only 1/10 of iterations", c1s, t -= 20, scales);
+            _renderText("Iterations (space for selector):", c1m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("100    : Ctrl + 1", c1s, t -= _spacing.extended, _spacing.scaleS);
+            _renderText("200    : Ctrl + 2", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("300    : Ctrl + 3", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("400    : Ctrl + 4", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("500    : Ctrl + 5", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("600    : Ctrl + 6", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("700    : Ctrl + 7", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("800    : Ctrl + 8", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("900    : Ctrl + 9", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("1000   : Ctrl + Shift + 1", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("2000   : Ctrl + Shift + 2", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("3000   : Ctrl + Shift + 3", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("4000   : Ctrl + Shift + 4", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("5000   : Ctrl + Shift + 5", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("6000   : Ctrl + Shift + 6", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("7000   : Ctrl + Shift + 7", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("8000   : Ctrl + Shift + 8", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("9000   : Ctrl + Shift + 9", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("10000  : Ctrl + 0", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("20000  : Ctrl + O", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("100000 : Ctrl + Shift + 0", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("200000 : Ctrl + Shift + O", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("newton fractal uses only 1/10 of iterations", c1s, t -= _spacing.normal, _spacing.scaleS);
 
             t = 950;
 
-            _renderText("Number of colors (space for selector):", c2m, t -= 40, scalem);
-            _renderText("2    : Alt + 1", c2s, t -= 25, scales);
-            _renderText("4    : Alt + 2", c2s, t -= 20, scales);
-            _renderText("8    : Alt + 3", c2s, t -= 20, scales);
-            _renderText("16   : Alt + 4", c2s, t -= 20, scales);
-            _renderText("32   : Alt + 5", c2s, t -= 20, scales);
-            _renderText("64   : Alt + 6", c2s, t -= 20, scales);
-            _renderText("128  : Alt + 7", c2s, t -= 20, scales);
-            _renderText("256  : Alt + 8", c2s, t -= 20, scales);
-            _renderText("512  : Alt + 9", c2s, t -= 20, scales);
-            _renderText("1024 : Alt + 0", c2s, t -= 20, scales);
-            _renderText("2048 : Alt + O", c2s, t -= 20, scales);
+            _renderText("Number of colors (space for selector):", c2m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("2    : Alt + 1", c2s, t -= _spacing.extended, _spacing.scaleS);
+            _renderText("4    : Alt + 2", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("8    : Alt + 3", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("16   : Alt + 4", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("32   : Alt + 5", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("64   : Alt + 6", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("128  : Alt + 7", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("256  : Alt + 8", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("512  : Alt + 9", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("1024 : Alt + 0", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("2048 : Alt + O", c2s, t -= _spacing.normal, _spacing.scaleS);
 
-            _renderText("Render:", c2m, t -= 40, scalem);
-            _renderText("toggle double : Tab", c2s, t -= 25, scales);
+            _renderText("Render:", c2m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("toggle double : Tab", c2s, t -= _spacing.extended, _spacing.scaleS);
 
-            _renderText("Reset (space for selector):", c2m, t -= 40, scalem);
-            _renderText("zoom and center  : R", c2s, t -= 25, scales);
-            _renderText("iterations       : Ctrl + R", c2s, t -= 20, scales);
-            _renderText("number of colors : Alt + R", c2s, t -= 20, scales);
-            _renderText("all              : Shift + R", c2s, t -= 20, scales);
+            _renderText("Reset (space for selector):", c2m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("zoom and center  : R", c2s, t -= _spacing.extended, _spacing.scaleS);
+            _renderText("iterations       : Ctrl + R", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("number of colors : Alt + R", c2s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("all              : Shift + R", c2s, t -= _spacing.normal, _spacing.scaleS);
 
-            _renderText("Newton fractal:", c2m, t -= 40, scalem);
-            _renderText("add/remove point : Shift + RMB", c2s, t -= 25, scales);
-            _renderText("move point       : Shift + LMB", c2s, t -= 20, scales);
+            _renderText("Newton fractal:", c2m, t -= _spacing.full, _spacing.scaleM);
+            _renderText("add/remove point : Shift + RMB", c2s, t -= _spacing.extended, _spacing.scaleS);
+            _renderText("move point       : Shift + LMB", c2s, t -= _spacing.normal, _spacing.scaleS);
         }
 
         void _updateCoefs()
