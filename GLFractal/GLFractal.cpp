@@ -37,6 +37,9 @@ namespace GLFractal
 
         const int _MAX_ROOTS = 10;
 
+        // when rendering text, determines how many characters will be rendered at once
+        const int _MAX_STR_LEN = 64;
+
         GLFConfig _initialSettings;
 
         double _scale;
@@ -487,19 +490,12 @@ namespace GLFractal
             glGenBuffers(1, &_buffers.textVBO);
             glGenBuffers(1, &_buffers.textEBO);
 
-            float vertices[] = {
-                -1.0f, -1.0f,   0.0f, 0.0f,
-                -1.0f,  1.0f,   0.0f, 1.0f,
-                 1.0f,  1.0f,   1.0f, 1.0f,
-                 1.0f, -1.0f,   1.0f, 0.0f,
-            };
-
             glBindVertexArray(_buffers.textVAO);
             glBindBuffer(GL_ARRAY_BUFFER, _buffers.textVBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 16 * _MAX_STR_LEN + 1, NULL, GL_DYNAMIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.textEBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_rectIndices), _rectIndices, GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6 * _MAX_STR_LEN, NULL, GL_DYNAMIC_DRAW);
 
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -934,10 +930,23 @@ namespace GLFractal
 
         void _renderText(string text, float x, float y, float scale)
         {
-            _fontShader.update();
-            glBindVertexArray(_buffers.textVAO);
+            int vertLength = 16 * text.length();
+            int indLength = 6 * text.length();
+            if (text.length() > _MAX_STR_LEN)
+            {
+                vertLength = 16 * _MAX_STR_LEN;
+                indLength = 6 * _MAX_STR_LEN;
+            }
 
-            for (string::const_iterator c = text.begin(); c != text.end(); c++)
+            unique_ptr<float> vertPtr{ new float[vertLength] };
+            float* vertices = vertPtr.get();
+            
+            unique_ptr<unsigned int> indPtr{ new unsigned int[indLength] };
+            unsigned int* indices = indPtr.get();
+
+            int indIndex = 0;
+            int i = 0;
+            for (string::const_iterator c = text.begin(); c != text.end() && i < _MAX_STR_LEN; c++, indIndex += 4, i++)
             {
                 Character ch = _font[*c];
 
@@ -947,20 +956,28 @@ namespace GLFractal
                 float w = ch.size.x * scale;
                 float h = ch.size.y * scale;
 
-                float vertices[] =
-                {
-                    xPos    , yPos + h, (float)ch.position.x / _font.width()              , (float)(ch.position.y + ch.size.y) / _font.height(),
-                    xPos    , yPos    , (float)ch.position.x / _font.width()              , (float)ch.position.y / _font.height(),
-                    xPos + w, yPos    , (float)(ch.position.x + ch.size.x) / _font.width(), (float)ch.position.y / _font.height(),
-                    xPos + w, yPos + h, (float)(ch.position.x + ch.size.x) / _font.width(), (float)(ch.position.y + ch.size.y) / _font.height(),
-                };
+                *vertices++ = xPos;     *vertices++ = yPos + h; *vertices++ = (float)ch.position.x / _font.width();               *vertices++ = (float)(ch.position.y + ch.size.y) / _font.height();
+                *vertices++ = xPos;     *vertices++ = yPos;     *vertices++ = (float)ch.position.x / _font.width();               *vertices++ = (float)ch.position.y / _font.height();
+                *vertices++ = xPos + w; *vertices++ = yPos;     *vertices++ = (float)(ch.position.x + ch.size.x) / _font.width(); *vertices++ = (float)ch.position.y / _font.height();
+                *vertices++ = xPos + w; *vertices++ = yPos + h; *vertices++ = (float)(ch.position.x + ch.size.x) / _font.width(); *vertices++ = (float)(ch.position.y + ch.size.y) / _font.height();
 
-                glBindBuffer(GL_ARRAY_BUFFER, _buffers.textVBO);
-                glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                *indices++ = indIndex + 0; *indices++ = indIndex + 1; *indices++ = indIndex + 3;
+                *indices++ = indIndex + 1; *indices++ = indIndex + 2; *indices++ = indIndex + 3;
 
                 x += (ch.advance >> 6) * scale;
             }
+
+            _fontShader.update();
+            glBindVertexArray(_buffers.textVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, _buffers.textVBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertLength, vertPtr.get());
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.textEBO);
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indLength, indPtr.get());
+            glVertexAttribPointer(0, vertLength, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+            glDrawElements(GL_TRIANGLES, indLength, GL_UNSIGNED_INT, 0);
+
+            if (text.length() > _MAX_STR_LEN)
+                _renderText(text.substr(_MAX_STR_LEN, text.length() - _MAX_STR_LEN), x, y, scale);
         }
 
         void _renderInfo(double deltaTime)
