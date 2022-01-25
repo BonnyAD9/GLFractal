@@ -342,7 +342,7 @@ namespace GLFractal
                     shader.setFloat3("color", _color);
                     shader.setFloat2Array("roots", _MAX_ROOTS, _roots);
                     shader.setInt("rootCount", _rootCount);
-                    shader.setFloat2Array("coefs", _MAX_ROOTS, _coefs);
+                    shader.setFloat2Array("coefs", _MAX_ROOTS + 1, _coefs);
                     shader.setInt("coefCount", _coefCount);
                 });
             if (!_fractals.newtonCoefF.isCreated())
@@ -359,7 +359,7 @@ namespace GLFractal
                     shader.setFloat3("color", _color);
                     shader.setFloat2Array("roots", _MAX_ROOTS, _roots);
                     shader.setInt("rootCount", _rootCount);
-                    shader.setFloat2Array("coefs", _MAX_ROOTS, _coefs);
+                    shader.setFloat2Array("coefs", _MAX_ROOTS + 1, _coefs);
                     shader.setInt("coefCount", _coefCount);
                 });
             if (!_fractals.newtonCoefD.isCreated())
@@ -1036,6 +1036,7 @@ namespace GLFractal
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Scale: " + to_string(1 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             default:
                 _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
