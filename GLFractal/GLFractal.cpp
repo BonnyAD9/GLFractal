@@ -64,7 +64,7 @@ namespace GLFractal
 
         Mat4 _projection = Mat4::orthographic(0, _WIN_WIDTH, 0, _WIN_HEIGHT, 1, -1);
 
-        static DVec2 lastMousePos;
+        static DVec2 _mousePos;
 
         int _rootCount = 3;
         Vec2 _roots[_MAX_ROOTS] =
@@ -82,8 +82,6 @@ namespace GLFractal
             Vec2(0.0f, 0.0f),
             Vec2(-1.0f, 0.0f),
         };
-
-        int _rootHold = -1;
 
         _Fractal _fractal();
 
@@ -155,6 +153,8 @@ namespace GLFractal
             _NORM_VIEW_WIDTH, -1.0              , 0.0f,     0.0f, 0.0f
         };
 
+        inline _RenderChange operator|(_RenderChange rc1, _RenderChange rc2);
+
         _Fractal _fractal();
 
         GLFResult _init();
@@ -174,6 +174,10 @@ namespace GLFractal
         _RenderChange _changeCoefs(GLFWwindow* window);
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
+        _RenderChange _moveConstant(GLFWwindow* window);
+        _RenderChange _moveRoot(GLFWwindow* window);
+        _RenderChange _moveView(GLFWwindow* window, DVec2 mouseDelta);
+        _RenderChange _scaleView(GLFWwindow* window, DVec2 mouseDelta);
 
         void _renderText(string text, float x, float y, float scale);
 
@@ -202,11 +206,16 @@ namespace GLFractal
 
         enum class _RenderChange
         {
-            INVALID = -1,
+            INVALID = 0b1,
             NONE = 0,
-            MAIN,
-            SELECTOR
+            MAIN = 0b10,
+            SELECTOR = 0b100,
         };
+
+        inline _RenderChange operator|(_RenderChange rc1, _RenderChange rc2)
+        {
+            return static_cast<_RenderChange>(static_cast<int>(rc1) | static_cast<int>(rc2));
+        }
 
         _Fractal _fractal()
         {
@@ -714,8 +723,8 @@ namespace GLFractal
             {
                 lastRMB = rmb;
                 Vec2 fracPos = Vec2(
-                    (float)((lastMousePos.x - _VIEW_WIDTH / 2) / _VIEW_WIDTH * _scale - _center.x),
-                    (float)((lastMousePos.y - _VIEW_HEIGHT / 2) / _VIEW_HEIGHT * -_scale - _center.y)
+                    (float)((_mousePos.x - _VIEW_WIDTH / 2) / _VIEW_WIDTH * _scale - _center.x),
+                    (float)((_mousePos.y - _VIEW_HEIGHT / 2) / _VIEW_HEIGHT * -_scale - _center.y)
                 );
 
                 if (_rootCount != 0)
@@ -758,40 +767,60 @@ namespace GLFractal
         {
             // calculating mouse movement
             DVec2 current = DVec2(x, y);
-            DVec2 delta = current - lastMousePos;
-            lastMousePos = current;
+            DVec2 delta = current - _mousePos;
+            _mousePos = current;
 
-            bool spaceDown = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
-            bool shiftDown = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
-            bool lmb = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-            bool rmb = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+            if (_moveConstant(window) != _RenderChange::NONE) return;
 
-            static bool lastRMB = false;
-            bool curRS = rmb && shiftDown;
-
-            if (!spaceDown && current.x > _VIEW_WIDTH && current.y > _SMALL_HEIGHT_OFFSET)
+            switch (_moveRoot(window))
             {
-                if (lmb)
-                {
-                    DVec2 relCur = current - DVec2(_VIEW_WIDTH, _SMALL_HEIGHT_OFFSET);
-                    _constant = DVec2(
-                        (relCur.x - _SMALL_WIDTH / 2) / _SMALL_WIDTH * _selScale - _selCenter.x,
-                        (relCur.y - _SMALL_WIDTH / 2) / _SMALL_WIDTH * -_selScale - _selCenter.y);
-                }
+            case _RenderChange::NONE:
+                break;
+            case _RenderChange::INVALID:
+                return;
+            default:
+                _updateCoefs();
                 return;
             }
 
-            if (lmb && shiftDown)
+            if (_moveView(window, delta) != _RenderChange::NONE) return;
+            if (_scaleView(window, delta) != _RenderChange::NONE) return;
+        }
+
+        _RenderChange _moveConstant(GLFWwindow* window)
+        {
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && _mousePos.x > _VIEW_WIDTH && _mousePos.y > _SMALL_HEIGHT_OFFSET)
+            {
+                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                {
+                    DVec2 relCur = _mousePos - DVec2(_VIEW_WIDTH, _SMALL_HEIGHT_OFFSET);
+                    _constant = DVec2(
+                        (relCur.x - _SMALL_WIDTH / 2) / _SMALL_WIDTH * _selScale - _selCenter.x,
+                        (relCur.y - _SMALL_WIDTH / 2) / _SMALL_WIDTH * -_selScale - _selCenter.y
+                    );
+                    return _RenderChange::SELECTOR;
+                }
+                return _RenderChange::INVALID;
+            }
+            return _RenderChange::NONE;
+        }
+
+        _RenderChange _moveRoot(GLFWwindow* window)
+        {
+            static int rootHold = -1;
+            bool shift = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && shift)
             {
                 Vec2 fracPos = Vec2(
-                    (float)((lastMousePos.x - _VIEW_WIDTH / 2) / _VIEW_WIDTH * _scale - _center.x),
-                    (float)((lastMousePos.y - _VIEW_HEIGHT / 2) / _VIEW_HEIGHT * -_scale - _center.y)
+                    (float)((_mousePos.x - _VIEW_WIDTH / 2) / _VIEW_WIDTH * _scale - _center.x),
+                    (float)((_mousePos.y - _VIEW_HEIGHT / 2) / _VIEW_HEIGHT * -_scale - _center.y)
                 );
 
-                if (_rootHold < 0)
+                if (rootHold < 0)
                 {
                     if (_rootCount == 0)
-                        return;
+                        return _RenderChange::INVALID;
                     int closest = 0;
                     float distance = (fracPos - _roots[0]).length();
                     for (int i = 1; i < _rootCount; i++)
@@ -804,53 +833,56 @@ namespace GLFractal
                         }
                     }
                     if (distance < 0.007 * _scale)
-                        _rootHold = closest;
+                        rootHold = closest;
                 }
-                _roots[_rootHold] = fracPos;
-                _updateCoefs();
-                return;
+                _roots[rootHold] = fracPos;
+                return _RenderChange::MAIN;
             }
-            else
+            rootHold = -1;
+            return shift ? _RenderChange::INVALID : _RenderChange::NONE;
+        }
+
+        _RenderChange _moveView(GLFWwindow* window, DVec2 mouseDelta)
+        {
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+                return _RenderChange::NONE;
+
+            DVec2 newCenterDifference{
+                mouseDelta.x / _VIEW_WIDTH,
+                mouseDelta.y / _VIEW_HEIGHT * -1
+            };
+
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
-                _rootHold = -1;
+                _selCenter += (Vec2)(newCenterDifference * ((double)_VIEW_WIDTH / _SMALL_WIDTH) * _selScale);
+                return _RenderChange::SELECTOR;
+            }
+            
+            _center += newCenterDifference * _scale;
+            return _RenderChange::MAIN;
+        }
+
+        _RenderChange _scaleView(GLFWwindow* window, DVec2 mouseDelta)
+        {
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
+            {
+                return _RenderChange::NONE;
             }
 
-            if (shiftDown)
-                return;
+            double newScaleMultiplier = pow(0.99, -mouseDelta.y);
 
-            DVec2 newCenterDifference{};
-            double newScaleMultiplier = 1.0;
-
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-            {
-                // moving image
-                newCenterDifference = DVec2(delta.x / _VIEW_WIDTH, delta.y / _VIEW_HEIGHT * -1);
-            }
-            else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-            {
-                // zooming image
-                newScaleMultiplier *= pow(0.99, -delta.y);
-            }
-            else
-            {
-                return;
-            }
-
-            if (spaceDown)
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
                 _selScale *= (float)newScaleMultiplier;
-                _selCenter += (Vec2)(newCenterDifference * ((double)_VIEW_WIDTH / _SMALL_WIDTH) * _selScale);
+                return _RenderChange::SELECTOR;
             }
-            else
-            {
-                _scale *= newScaleMultiplier;
-                _center += newCenterDifference * _scale;
-            }
+
+            _scale *= newScaleMultiplier;
+            return _RenderChange::MAIN;
         }
 
         void _renderText(string text, float x, float y, float scale)
         {
-
             _fontShader.update();
             glBindVertexArray(_buffers.textVAO);
 
