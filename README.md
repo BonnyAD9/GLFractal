@@ -5,13 +5,13 @@ App that renders fractals using OpenGL
 - Julia set
 - Newton fractal
 ### Mandelbrot set
-![image](https://user-images.githubusercontent.com/46282097/150401761-c61f3068-0f2c-4c82-ab65-69f9f372ec77.png)
+![image](https://user-images.githubusercontent.com/46282097/151051132-b7bb8d25-3755-45e5-8587-f345567b1219.png)
 ### Julia set
-![image](https://user-images.githubusercontent.com/46282097/150401839-c874bc2c-7590-44f9-8749-5c851ed429b5.png)
+![image](https://user-images.githubusercontent.com/46282097/151051245-99d982df-63e0-4cba-94f3-3502f238157c.png)
 ### Newton fractal
-![image](https://user-images.githubusercontent.com/46282097/150654663-7e8c5568-f296-4465-a31a-e6e91fe85eeb.png)
+![image](https://user-images.githubusercontent.com/46282097/151051523-8c8611b8-445e-452d-a5d0-7b70adeecfe1.png)
 ### Help page
-![image](https://user-images.githubusercontent.com/46282097/150654672-32d06bfe-31ff-4612-b78d-8c5ddf69710c.png)
+![image](https://user-images.githubusercontent.com/46282097/151051564-c3cf4a08-64da-4dfe-8c0d-9c3de2c7ef22.png)
 ## Libraries used
 - [Glad](https://glad.dav1d.de)
 - [glfw](https://github.com/glfw/glfw) (precompiled for windows)
