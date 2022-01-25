@@ -123,27 +123,6 @@ namespace GLFractal
             -1.0f,            -1.0f, 0.0f,		0.0f, 0.0f
         };
 
-        // Indices of triangles for rectangle (indexes in verices array)
-        const unsigned int _mainIndices[] =
-        {
-            0, 1, 3,
-            1, 2, 3
-        };
-
-        // Indices of triangles for rectangle (indexes in verices array)
-        const unsigned int _selectorIndices[] =
-        {
-            0, 1, 3,
-            1, 2, 3
-        };
-
-        // Indices of triangles for rectangle (indexes in verices array)
-        const unsigned int _textIndices[] =
-        {
-            0, 1, 3,
-            1, 2, 3,
-        };
-
         // Points on screen used to form truengles for point selector view
         const float _selectorVertices[] =
         {
@@ -151,6 +130,13 @@ namespace GLFractal
             1.0,              -_SMALL_SEC_HEIGHT, 0.0f,     1.0f, 1.0f,
             1.0,              -1.0              , 0.0f,     0.0f, 1.0f,
             _NORM_VIEW_WIDTH, -1.0              , 0.0f,     0.0f, 0.0f
+        };
+
+        // Indices of triangles for rectangle (indexes in verices array)
+        const unsigned int _rectIndices[] =
+        {
+            0, 1, 3,
+            1, 2, 3
         };
 
         inline _RenderChange operator|(_RenderChange rc1, _RenderChange rc2);
@@ -380,7 +366,7 @@ namespace GLFractal
             glBufferData(GL_ARRAY_BUFFER, sizeof(_mainVertices), _mainVertices, GL_STATIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.mainEBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_mainIndices), _mainIndices, GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_rectIndices), _rectIndices, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -399,7 +385,7 @@ namespace GLFractal
             glBufferData(GL_ARRAY_BUFFER, sizeof(_selectorVertices), _selectorVertices, GL_STATIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.selEBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_selectorIndices), _selectorIndices, GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_rectIndices), _rectIndices, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -500,7 +486,7 @@ namespace GLFractal
             glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 16, NULL, GL_DYNAMIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.textEBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_textIndices), _textIndices, GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_rectIndices), _rectIndices, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
