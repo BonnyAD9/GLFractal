@@ -492,7 +492,7 @@ namespace GLFractal
 
             glBindVertexArray(_buffers.textVAO);
             glBindBuffer(GL_ARRAY_BUFFER, _buffers.textVBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 16 * _MAX_STR_LEN + 1, NULL, GL_DYNAMIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 16 * _MAX_STR_LEN, NULL, GL_DYNAMIC_DRAW);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffers.textEBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6 * _MAX_STR_LEN, NULL, GL_DYNAMIC_DRAW);
