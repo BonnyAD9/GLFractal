@@ -165,10 +165,10 @@ namespace GLFractal
 
         void _processInput(GLFWwindow* window);
         _RenderChange _toggleFloatDouble(GLFWwindow* window);
-        _RenderChange _changeColorCount(GLFWwindow* window);
-        _RenderChange _changeIterations(GLFWwindow* window);
+        _RenderChange _changeColorCount(GLFWwindow* window, bool allowSelector);
+        _RenderChange _changeIterations(GLFWwindow* window, bool allowSelector);
         _RenderChange _changeFractal(GLFWwindow* window);
-        _RenderChange _resetRenderParam(GLFWwindow* window);
+        _RenderChange _resetRenderParam(GLFWwindow* window, bool allowSelector);
         _RenderChange _resetMainRenderParam(GLFWwindow* window);
         _RenderChange _resetSelectorRenderParam(GLFWwindow* window);
         _RenderChange _changeCoefs(GLFWwindow* window);
@@ -176,8 +176,8 @@ namespace GLFractal
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
         _RenderChange _moveConstant(GLFWwindow* window);
         _RenderChange _moveRoot(GLFWwindow* window);
-        _RenderChange _moveView(GLFWwindow* window, DVec2 mouseDelta);
-        _RenderChange _scaleView(GLFWwindow* window, DVec2 mouseDelta);
+        _RenderChange _moveView(GLFWwindow* window, DVec2 mouseDelta, bool allowSelector);
+        _RenderChange _scaleView(GLFWwindow* window, DVec2 mouseDelta, bool allowSelector);
 
         void _renderText(string text, float x, float y, float scale);
 
@@ -516,16 +516,42 @@ namespace GLFractal
             // exit on ESC
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
+            
+            switch (_frac)
+            {
+            case Fractal::HELP:
+                _changeFractal(window);
+                break;
+            case Fractal::MANDELBROT:
+                _toggleFloatDouble(window);
 
-            _toggleFloatDouble(window);
+                if (_changeColorCount(window, false) != _RenderChange::NONE) {}
+                else if (_changeIterations(window, false) != _RenderChange::NONE) {}
+                else _changeFractal(window);
 
-            if (_changeColorCount(window) != _RenderChange::NONE) {}
-            else if (_changeIterations(window) != _RenderChange::NONE) {}
-            else _changeFractal(window);
+                _resetRenderParam(window, false);
+                break;
+            case Fractal::JULIA:
+                _toggleFloatDouble(window);
 
-            _resetRenderParam(window);
+                if (_changeColorCount(window, true) != _RenderChange::NONE) {}
+                else if (_changeIterations(window, true) != _RenderChange::NONE) {}
+                else _changeFractal(window);
 
-            _changeCoefs(window);
+                _resetRenderParam(window, true);
+                break;
+            case Fractal::NEWTON:
+                _toggleFloatDouble(window);
+
+                if (_changeIterations(window, false) != _RenderChange::NONE) {}
+                else _changeFractal(window);
+
+                _resetRenderParam(window, false);
+                
+                if (_changeCoefs(window) == _RenderChange::MAIN)
+                    _updateCoefs();
+                break;
+            }
         }
 
         _RenderChange _toggleFloatDouble(GLFWwindow* window)
@@ -545,7 +571,7 @@ namespace GLFractal
             return _RenderChange::NONE;
         }
 
-        _RenderChange _changeColorCount(GLFWwindow* window)
+        _RenderChange _changeColorCount(GLFWwindow* window, bool allowSelector)
         {
             float newColorCount = 0;
             if (glfwGetKey(window, GLFW_KEY_LEFT_ALT))
@@ -580,6 +606,8 @@ namespace GLFractal
 
             if (glfwGetKey(window, GLFW_KEY_SPACE))
             {
+                if (!allowSelector)
+                    return _RenderChange::INVALID;
                 _selColorCount = newColorCount;
                 return _RenderChange::SELECTOR;
             }
@@ -587,7 +615,7 @@ namespace GLFractal
             return _RenderChange::MAIN;
         }
 
-        _RenderChange _changeIterations(GLFWwindow* window)
+        _RenderChange _changeIterations(GLFWwindow* window, bool allowSelector)
         {
             int newIterations = 0;
             if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
@@ -625,6 +653,8 @@ namespace GLFractal
 
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
+                if (!allowSelector)
+                    return _RenderChange::INVALID;
                 _selIterations = newIterations;
                 return _RenderChange::SELECTOR;
             }
@@ -657,13 +687,13 @@ namespace GLFractal
             return _RenderChange::NONE;
         }
 
-        _RenderChange _resetRenderParam(GLFWwindow* window)
+        _RenderChange _resetRenderParam(GLFWwindow* window, bool allowSelector)
         {
             if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE)
                 return _RenderChange::NONE;
 
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-                return _resetSelectorRenderParam(window);
+                return allowSelector ? _resetSelectorRenderParam(window) : _RenderChange::INVALID;
             return _resetMainRenderParam(window);
         }
 
@@ -745,7 +775,6 @@ namespace GLFractal
                         _rootCount--;
                         for (int i = closest; i < _rootCount; i++)
                             _roots[i] = _roots[i + 1];
-                        _updateCoefs();
                         return _RenderChange::MAIN;
                     }
                 }
@@ -753,7 +782,6 @@ namespace GLFractal
                 {
                     _roots[_rootCount] = fracPos;
                     _rootCount++;
-                    _updateCoefs();
                     return _RenderChange::MAIN;
                 }
                 return _RenderChange::INVALID;
@@ -770,21 +798,41 @@ namespace GLFractal
             DVec2 delta = current - _mousePos;
             _mousePos = current;
 
-            if (_moveConstant(window) != _RenderChange::NONE) return;
-
-            switch (_moveRoot(window))
+            switch (_frac)
             {
-            case _RenderChange::NONE:
+            case Fractal::HELP:
                 break;
-            case _RenderChange::INVALID:
-                return;
-            default:
-                _updateCoefs();
-                return;
-            }
+            case Fractal::MANDELBROT:
+                if (_moveView(window, delta, false) != _RenderChange::NONE) break;
+                if (_scaleView(window, delta, false) != _RenderChange::NONE) break;
+                break;
+            case Fractal::JULIA:
+                if (_moveConstant(window) != _RenderChange::NONE) break;
+                if (_moveView(window, delta, true) != _RenderChange::NONE) break;
+                if (_scaleView(window, delta, true) != _RenderChange::NONE) break;
+                break;
+            case Fractal::NEWTON:
+                bool cont = true;
+                switch (_moveRoot(window))
+                {
+                case _RenderChange::NONE:
+                    break;
+                case _RenderChange::INVALID:
+                    cont = false;
+                    break;
+                default:
+                    _updateCoefs();
+                    cont = false;
+                    break;
+                }
+                if (!cont)
+                    break;
 
-            if (_moveView(window, delta) != _RenderChange::NONE) return;
-            if (_scaleView(window, delta) != _RenderChange::NONE) return;
+                if (_moveView(window, delta, false) != _RenderChange::NONE) break;
+                if (_scaleView(window, delta, false) != _RenderChange::NONE) break;
+
+                break;
+            }
         }
 
         _RenderChange _moveConstant(GLFWwindow* window)
@@ -842,7 +890,7 @@ namespace GLFractal
             return shift ? _RenderChange::INVALID : _RenderChange::NONE;
         }
 
-        _RenderChange _moveView(GLFWwindow* window, DVec2 mouseDelta)
+        _RenderChange _moveView(GLFWwindow* window, DVec2 mouseDelta, bool allowSelector)
         {
             if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
                 return _RenderChange::NONE;
@@ -854,6 +902,8 @@ namespace GLFractal
 
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
+                if (!allowSelector)
+                    return _RenderChange::INVALID;
                 _selCenter += (Vec2)(newCenterDifference * ((double)_VIEW_WIDTH / _SMALL_WIDTH) * _selScale);
                 return _RenderChange::SELECTOR;
             }
@@ -862,7 +912,7 @@ namespace GLFractal
             return _RenderChange::MAIN;
         }
 
-        _RenderChange _scaleView(GLFWwindow* window, DVec2 mouseDelta)
+        _RenderChange _scaleView(GLFWwindow* window, DVec2 mouseDelta, bool allowSelector)
         {
             if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
             {
@@ -873,6 +923,8 @@ namespace GLFractal
 
             if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
+                if (!allowSelector)
+                    return _RenderChange::INVALID;
                 _selScale *= (float)newScaleMultiplier;
                 return _RenderChange::SELECTOR;
             }
