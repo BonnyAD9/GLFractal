@@ -178,9 +178,6 @@
     <Content Include="julia_d.frag">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="yel_blue_1024.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="CascadiaMono.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -212,9 +209,6 @@
     <None Include="shader.vert" />
     <None Include="text.frag" />
     <None Include="text.vert" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="yel_blue_1024.png" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Complex.h" />
