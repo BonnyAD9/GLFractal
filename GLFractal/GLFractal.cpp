@@ -160,7 +160,7 @@ namespace GLFractal
         GLFResult _init();
         GLFResult _initShaders();
         GLFResult _initBuffers();
-        GLFResult _loadTexture(string texturePath);
+        GLFResult _loadTexture(GradientPreset gradient);
         GLFResult _loadFont(string fontPath);
 
         void _processInput(GLFWwindow* window);
@@ -423,9 +423,9 @@ namespace GLFractal
             return GLFResult::OK;
         }
 
-        GLFResult _loadTexture(string texturePath)
+        GLFResult _loadTexture(GradientPreset gradient)
         {
-            Gradient grad = Gradient::fromPreset(GradientPreset::ULTRA_FRACTAL);
+            Gradient grad = Gradient::fromPreset(gradient);
 
             const int width = 1024;
 
@@ -1189,7 +1189,7 @@ namespace GLFractal
             return result;
         if ((result = _initBuffers()) != GLFResult::OK)
             return result;
-        if ((result = _loadTexture(config.gradientPath)) != GLFResult::OK)
+        if ((result = _loadTexture(config.gradient)) != GLFResult::OK)
             return result;
         if ((result = _loadFont(config.fontPath)) != GLFResult::OK)
             return result;

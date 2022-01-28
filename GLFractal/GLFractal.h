@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vectors.h"
+#include "Gradient.h"
 
 /// <summary>
 /// Contains functions that run the Fractal window
@@ -116,9 +117,9 @@ namespace GLFractal
 
 		/// <summary>
 		/// Path to the gradien that will be used
-		/// default: "yel_blue_1024.png"
+		/// default: ULTRA_FRACTAL
 		/// </summary>
-		string gradientPath{ "yel_blue_1024.png" };
+		GradientPreset gradient{ GradientPreset::ULTRA_FRACTAL };
 		
 		/// <summary>
 		/// Path to the font that will be used to render text
