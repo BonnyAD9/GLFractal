@@ -48,6 +48,17 @@ void printMessage(GLFResult rm)
     case GLFResult::INVALID_FRACTAL:
         cout << "Selected invalid fractal" << endl;
         break;
+    case GLFResult::UNEXPECTED_ERROR:
+        cout << "An unexpected error has occured" << endl;
+        break;
+    case GLFResult::FREETYPE_LOAD_ERROR:
+        cout << "Failed to load FreeType" << endl;
+        break;
+    case GLFResult::FONT_LOAD_ERROR:
+        cout << "Failed to load font" << endl;
+        break;
+    case GLFResult::SOME_CHARACTERS_MISSING:
+        cout << "Some font characters failed to load" << endl;
     default:
         break;
     }
