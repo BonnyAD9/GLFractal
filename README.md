@@ -17,3 +17,4 @@ App that renders fractals using OpenGL
 - [glfw](https://github.com/glfw/glfw) (precompiled for windows)
 - [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h)
 - [FreeType](https://freetype.org/index.html) (precompiled for windows)
+- used font: [Cascadia Code](https://github.com/microsoft/cascadia-code)
