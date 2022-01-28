@@ -3,10 +3,10 @@ move center : LMB
 zoom in     : RMB up
 zoom out    : RMB down
 
-Fractals
+Fractals:
 help           : F1
 mandelbrot set : 1
-julia sets     : 2
+julia set      : 2
 newton fractal : 3
 
 Selector:

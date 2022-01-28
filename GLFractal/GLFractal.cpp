@@ -1018,7 +1018,7 @@ namespace GLFractal
                 _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(1 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::JULIA:
@@ -1030,14 +1030,14 @@ namespace GLFractal
                 _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(1 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Number: " + to_string(_constant.x) + " + " + to_string(_constant.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
 
                 _renderText("Selector:", lm, t -= _spacing.full, _spacing.scaleM);
                 _renderText("Iterations: " + to_string(_selIterations), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_selColorCount), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(1 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(4 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::NEWTON:
@@ -1048,7 +1048,7 @@ namespace GLFractal
                 _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
                 _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(1 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
