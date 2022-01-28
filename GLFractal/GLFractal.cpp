@@ -1079,6 +1079,7 @@ namespace GLFractal
             _renderText("help           : F1", c1s, t -= _spacing.extended, _spacing.scaleS);
             _renderText("mandelbrot set : 1", c1s, t -= _spacing.normal, _spacing.scaleS);
             _renderText("julia set      : 2", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("newton fractal : 3", c1s, t -= _spacing.normal, _spacing.scaleS);
             
             _renderText("Selector:", c1m, t -= _spacing.full, _spacing.scaleM);
             _renderText("choose point : LMB", c1s, t -= _spacing.extended, _spacing.scaleS);
