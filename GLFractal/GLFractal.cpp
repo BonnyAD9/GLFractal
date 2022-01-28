@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "stb_image.h"
-
 #include "Shader.h"
 #include "FontTexture.h"
 #include "Vectors.h"
