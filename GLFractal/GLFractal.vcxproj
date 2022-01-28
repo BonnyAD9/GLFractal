@@ -153,6 +153,7 @@
     <ClCompile Include="FontTexture.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="GLFractal.cpp" />
+    <ClCompile Include="Gradient.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb_image.cpp" />
@@ -197,6 +198,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Include="debug.frag" />
     <None Include="julia_d.frag" />
     <None Include="julia_f.frag" />
     <None Include="mandelbrot_f.frag" />
@@ -215,6 +217,7 @@
     <ClInclude Include="Complex.h" />
     <ClInclude Include="FontTexture.h" />
     <ClInclude Include="GLFractal.h" />
+    <ClInclude Include="Gradient.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Vectors.h" />

@@ -39,6 +39,9 @@
     <ClCompile Include="Complex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Gradient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.vert">
@@ -71,6 +74,9 @@
     <None Include="newton_coef_d.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="debug.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="yel_blue_1024.png">
@@ -94,6 +100,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Complex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gradient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

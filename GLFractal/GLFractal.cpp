@@ -11,6 +11,7 @@
 #include "FontTexture.h"
 #include "Vectors.h"
 #include "Complex.h"
+#include "Gradient.h"
 
 namespace GLFractal
 {
@@ -108,6 +109,7 @@ namespace GLFractal
             Shader juliaD;
             Shader newtonCoefF;
             Shader newtonCoefD;
+            Shader debug;
         } _fractals;
 
         struct
@@ -195,7 +197,7 @@ namespace GLFractal
             NEWTON = 0b11,
 
             HELP_F = 0b00,
-            HELP_D = 0b01,
+            HELP_D = 0b01, // help debug XD
             MANDELBROT_F = 0b10,
             MANDELBROT_D = 0b11,
             JULIA_F = 0b100,
@@ -336,6 +338,7 @@ namespace GLFractal
             _fractals.newtonCoefF = Shader("shader.vert", "newton_coef_f.frag", [](Shader& shader)
                 {
                     shader.use();
+                    shader.setInt("texture1", 0);
                     shader.setFloat("scale", (float)_scale);
                     shader.setFloat2("center", (Vec2)_center);
                     shader.setInt("iter", _iterations / 10);
@@ -353,6 +356,7 @@ namespace GLFractal
             _fractals.newtonCoefD = Shader("shader.vert", "newton_coef_d.frag", [](Shader& shader)
                 {
                     shader.use();
+                    shader.setInt("texture1", 0);
                     shader.setDouble("scale", _scale);
                     shader.setDouble2("center", _center);
                     shader.setInt("iter", _iterations / 10);
@@ -365,6 +369,15 @@ namespace GLFractal
             if (!_fractals.newtonCoefD.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
             _fractals.newtonCoefD.update();
+
+            _fractals.debug = Shader("shader.vert", "debug.frag", [](Shader& shader)
+                {
+                    shader.use();
+                    shader.setInt("texture1", 0);
+                });
+            if (!_fractals.debug.isCreated())
+                return GLFResult::SHADER_INIT_ERROR;
+            _fractals.debug.update();
 
             return GLFResult::OK;
         }
@@ -414,10 +427,11 @@ namespace GLFractal
 
         GLFResult _loadTexture(string texturePath)
         {
-            int width, height, nrChannels;
-            unsigned char* data = stbi_load(texturePath.data(), &width, &height, &nrChannels, 0);
-            if (!data)
-                return GLFResult::TEXTURE_LOAD_ERROR;
+            Gradient grad = Gradient::fromPreset(GradientPreset::ULTRA_FRACTAL);
+
+            const int width = 1024;
+
+            unique_ptr<unsigned char> data{ grad.image(width) };
 
             // setting up texture
             glGenTextures(1, &_buffers.gradientTexture);
@@ -426,18 +440,13 @@ namespace GLFractal
             // loading texture to gpu
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, _buffers.gradientTexture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
 
             // setting texture options
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            // deleting texture from ram
-            stbi_image_free(data);
-
-
 
             return GLFResult::OK;
         }
@@ -677,6 +686,13 @@ namespace GLFractal
             if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
             {
                 _frac = Fractal::HELP;
+                _useDouble = false;
+                return _RenderChange::MAIN;
+            }
+            if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS)
+            {
+                _frac = Fractal::HELP;
+                _useDouble = true;
                 return _RenderChange::MAIN;
             }
             return _RenderChange::NONE;
@@ -1221,7 +1237,7 @@ namespace GLFractal
                 _renderHelp();
                 break;
             case _Fractal::HELP_D:
-                _renderHelp();
+                _fractals.debug.update();
                 break;
             case _Fractal::NEWTON_F:
                 _fractals.newtonCoefF.update();

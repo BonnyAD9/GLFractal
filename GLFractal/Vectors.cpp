@@ -193,6 +193,54 @@ float Vec3::length()
     return sqrtf(x * x + y * y + z * z);
 }
 
+BVec3::BVec3() : x(0), y(0), z(0) {}
+
+BVec3::BVec3(unsigned char x, unsigned char y, unsigned char z) : x(x), y(y), z(z) {}
+
+BVec3 BVec3::operator+(BVec3 vec)
+{
+    return BVec3(x + vec.x, y + vec.y, z + vec.z);
+}
+
+BVec3 BVec3::operator-(BVec3 vec)
+{
+    return BVec3(x - vec.x, y - vec.y, z - vec.z);
+}
+
+BVec3 BVec3::operator=(BVec3 vec)
+{
+    x = vec.x;
+    y = vec.y;
+    z = vec.z;
+    return *this;
+}
+
+BVec3 BVec3::operator+=(BVec3 vec)
+{
+    x += vec.x;
+    y += vec.y;
+    z += vec.z;
+    return *this;
+}
+
+BVec3 BVec3::operator*(unsigned char num)
+{
+    x *= num;
+    y *= num;
+    z *= num;
+    return *this;
+}
+
+string BVec3::toString()
+{
+    return "(" + to_string((int)x) + ", " + to_string((int)y) + ", " + to_string((int)z) + ")";
+}
+
+float BVec3::length()
+{
+    return Vec3((float)x, (float)y, (float)z).length();
+}
+
 //==<<Mat4>>==//
 
 Mat4::Mat4() : _data{

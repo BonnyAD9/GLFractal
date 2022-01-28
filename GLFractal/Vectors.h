@@ -20,6 +20,10 @@ class IVec2;
 /// </summary>
 class Vec3;
 /// <summary>
+/// Vector of size 3 with bytes
+/// </summary>
+class BVec3;
+/// <summary>
 /// Matrix of size 4x4 with single floating point precision
 /// </summary>
 class Mat4;
@@ -221,6 +225,49 @@ public:
 	/// component z
 	/// </summary>
 	float z;
+};
+
+class BVec3
+{
+public:
+	/// <summary>
+	/// Initializes 0 vector
+	/// </summary>
+	BVec3();
+	/// <summary>
+	/// Initializes vector from its components
+	/// </summary>
+	/// <param name="x">component x</param>
+	/// <param name="y">component y</param>
+	/// <param name="z">component z</param>
+	BVec3(unsigned char x, unsigned char y, unsigned char z);
+	BVec3 operator+(BVec3 vec);
+	BVec3 operator-(BVec3 vec);
+	BVec3 operator=(BVec3 vec);
+	BVec3 operator+=(BVec3 vec);
+	BVec3 operator*(unsigned char num);
+	/// <summary>
+	/// Converts this vector to string
+	/// </summary>
+	/// <returns>string representation of this vector</returns>
+	string toString();
+	/// <summary>
+	/// Calculates length of this vector
+	/// </summary>
+	/// <returns>length of this vector</returns>
+	float length();
+	/// <summary>
+	/// component x
+	/// </summary>
+	unsigned char x;
+	/// <summary>
+	/// component y
+	/// </summary>
+	unsigned char y;
+	/// <summary>
+	/// component z
+	/// </summary>
+	unsigned char z;
 };
 
 class Mat4
