@@ -198,6 +198,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\README.md" />
     <None Include="debug.frag" />
     <None Include="julia_d.frag" />
     <None Include="julia_f.frag" />

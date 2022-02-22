@@ -131,6 +131,12 @@ namespace GLFractal
 		/// default: 40
 		/// </summary>
 		int fontSize{ 40 };
+
+		/// <summary>
+		/// Sets the fps limit
+		/// default: 10 000
+		/// </summary>
+		double fpsLimit = 10000.0;
 	};
 
 	/// <summary>

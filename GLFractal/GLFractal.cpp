@@ -64,6 +64,8 @@ namespace GLFractal
         Vec3 _textColor;
         Mat4 _fontProjection;
 
+        double _fpsLimit;
+
         const struct
         {
             const float scaleL = 1.0f;
@@ -994,7 +996,7 @@ namespace GLFractal
                 _renderText(text.substr(_MAX_STR_LEN, text.length() - _MAX_STR_LEN), x, y, scale);
         }
 
-        void _renderInfo(double deltaTime)
+        void _renderInfo(int fps)
         {
             const float lm = _VIEW_WIDTH + 10;
             const float ls = lm + 10;
@@ -1005,12 +1007,12 @@ namespace GLFractal
             switch (_frac)
             {
             case Fractal::HELP:
-                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+                _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
 
                 _renderText("Fractal: Help page", lm, t -= _spacing.full, _spacing.scaleM);
                 break;
             case Fractal::MANDELBROT:
-                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+                _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
 
                 _renderText("Fractal: Mandelbrot set", lm, t -= _spacing.full, _spacing.scaleM);
 
@@ -1022,7 +1024,7 @@ namespace GLFractal
                 _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::JULIA:
-                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+                _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
 
                 _renderText("Fractal: Julia set", lm, t -= _spacing.full, _spacing.scaleM);
 
@@ -1041,7 +1043,7 @@ namespace GLFractal
                 _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::NEWTON:
-                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+                _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
 
                 _renderText("Fractal: Newton fractal", lm, t -= _spacing.full, _spacing.scaleM);
 
@@ -1053,7 +1055,7 @@ namespace GLFractal
                 _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             default:
-                _renderText("Fps: " + to_string((int)(1 / deltaTime)), lm, t, _spacing.scaleM);
+                _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
 
                 _renderText("Fractal: Unknown", lm, t -= _spacing.full, _spacing.scaleM);
                 break;
@@ -1179,6 +1181,8 @@ namespace GLFractal
         _fontSize = config.fontSize;
         _textColor = config.textColor;
 
+        _fpsLimit = config.fpsLimit;
+
         GLFResult result{ GLFResult::OK };
         if ((result = _init()) != GLFResult::OK)
             return result;
@@ -1204,6 +1208,14 @@ namespace GLFractal
         {
             // user input
             _processInput(_window);
+
+            double newTime = glfwGetTime();
+            double deltaTime = newTime - lastTime;
+            double fps = 1.0 / deltaTime;
+            if (fps > _fpsLimit)
+                continue;
+
+            lastTime = newTime;
 
             // clearing display
             glClear(GL_COLOR_BUFFER_BIT);
@@ -1251,11 +1263,7 @@ namespace GLFractal
             // rendering image
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-            double newTime = glfwGetTime();
-
-            _renderInfo(newTime - lastTime);
-
-            lastTime = newTime;
+            _renderInfo((int)round(fps));
 
             // showing image
             glfwSwapBuffers(_window);

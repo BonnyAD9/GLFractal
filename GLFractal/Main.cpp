@@ -245,6 +245,16 @@ int main(int argc, char** args)
             }
             config.fontSize = fontSize;
         }
+        else if (arg == "--fps-limit" || arg == "-fps")
+        {
+            double fpsLimit;
+            if (!tryParse(*++args, &fpsLimit) || fpsLimit <= 0)
+            {
+                cout << "invalid fps limit '" << *args << "'" << endl;
+                return EXIT_FAILURE;
+            }
+            config.fpsLimit = fpsLimit;
+        }
         else
         {
             cout << "Invalid argument '" << arg << "'" << endl;
@@ -392,6 +402,10 @@ void printHelp()
     cout << "  --font-size  -fs\n";
     cout << "    sets the font size\n";
     cout << "    glfractal -fs 40\n";
+    cout << "\n";
+    cout << "  --fps-limit  -fps\n";
+    cout << "    sets the fps limit\n";
+    cout << "    glfractal -fps 10000.0\n";
     cout << "\n";
     cout << "Key bindings:\n";
     cout << "  View (hold space to use it for selector):\n";
