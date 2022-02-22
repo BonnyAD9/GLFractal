@@ -9,17 +9,17 @@
 
 using std::cout, std::endl, std::istreambuf_iterator, std::unique_ptr;
 
-bool createShader(const char* source, GLuint* shader, GLenum type);
-bool createShaderFromFile(const char* path, GLuint* shader, GLenum type);
-bool createShaderProgram(const GLuint vertex, const GLuint fragment, GLuint* program);
-bool createShaderProgram(const char* vertexSource, const char* fragmentSource, GLuint* program);
-bool createShaderProgramFromFile(const char* vertexPath, const char* fragmentPath, GLuint* program);
+bool _createShader(const char* source, GLuint* shader, GLenum type);
+bool _createShaderFromFile(const char* path, GLuint* shader, GLenum type);
+bool _createShaderProgram(const GLuint vertex, const GLuint fragment, GLuint* program);
+bool _createShaderProgram(const char* vertexSource, const char* fragmentSource, GLuint* program);
+bool _createShaderProgramFromFile(const char* vertexPath, const char* fragmentPath, GLuint* program);
 
 Shader::Shader() : _id(0), _isCreated(false) {}
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) : updateFun([](Shader& shader) {})
 {
-	if (!createShaderProgramFromFile(vertexPath, fragmentPath, &_id))
+	if (!_createShaderProgramFromFile(vertexPath, fragmentPath, &_id))
 	{
 		_isCreated = false;
 		return;
@@ -29,7 +29,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) : updateFun([](
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, function<void(Shader& shader)> update) : updateFun(update)
 {
-	if (!createShaderProgramFromFile(vertexPath, fragmentPath, &_id))
+	if (!_createShaderProgramFromFile(vertexPath, fragmentPath, &_id))
 	{
 		_isCreated = false;
 		return;
@@ -138,7 +138,7 @@ void Shader::setDouble2Array(const char* name, const int length, const DVec2* ar
 	glUniform2dv(glGetUniformLocation(_id, name), length, (GLdouble*)arr);
 }
 
-bool createShaderFromFile(const char* path, GLuint* shader, GLenum type)
+bool _createShaderFromFile(const char* path, GLuint* shader, GLenum type)
 {
 	ifstream file(path);
 
@@ -149,10 +149,10 @@ bool createShaderFromFile(const char* path, GLuint* shader, GLenum type)
 	}
 
 	string str(istreambuf_iterator<char>{file}, {});
-	return createShader(str.c_str(), shader, type);
+	return _createShader(str.c_str(), shader, type);
 }
 
-bool createShader(const char* source, GLuint* shader, GLenum type)
+bool _createShader(const char* source, GLuint* shader, GLenum type)
 {
 	*shader = glCreateShader(type);
 	glShaderSource(*shader, 1, &source, NULL);
@@ -172,7 +172,7 @@ bool createShader(const char* source, GLuint* shader, GLenum type)
 	return true;
 }
 
-bool createShaderProgram(const GLuint vertex, const GLuint fragment, GLuint* program)
+bool _createShaderProgram(const GLuint vertex, const GLuint fragment, GLuint* program)
 {
 	*program = glCreateProgram();
 
@@ -194,22 +194,22 @@ bool createShaderProgram(const GLuint vertex, const GLuint fragment, GLuint* pro
 	return true;
 }
 
-bool createShaderProgram(const char* vertexSource, const char* fragmentSource, GLuint* program)
+bool _createShaderProgram(const char* vertexSource, const char* fragmentSource, GLuint* program)
 {
 	GLuint vertex;
-	if (!createShader(vertexSource, &vertex, GL_VERTEX_SHADER))
+	if (!_createShader(vertexSource, &vertex, GL_VERTEX_SHADER))
 	{
 		return false;
 	}
 
 	GLuint fragment;
-	if (!createShader(fragmentSource, &fragment, GL_FRAGMENT_SHADER))
+	if (!_createShader(fragmentSource, &fragment, GL_FRAGMENT_SHADER))
 	{
 		glDeleteShader(vertex);
 		return false;
 	}
 
-	bool res = createShaderProgram(vertex, fragment, program);
+	bool res = _createShaderProgram(vertex, fragment, program);
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
@@ -217,22 +217,22 @@ bool createShaderProgram(const char* vertexSource, const char* fragmentSource, G
 	return res;
 }
 
-bool createShaderProgramFromFile(const char* vertexPath, const char* fragmentPath, GLuint* program)
+bool _createShaderProgramFromFile(const char* vertexPath, const char* fragmentPath, GLuint* program)
 {
 	GLuint vertex;
-	if (!createShaderFromFile(vertexPath, &vertex, GL_VERTEX_SHADER))
+	if (!_createShaderFromFile(vertexPath, &vertex, GL_VERTEX_SHADER))
 	{
 		return false;
 	}
 
 	GLuint fragment;
-	if (!createShaderFromFile(fragmentPath, &fragment, GL_FRAGMENT_SHADER))
+	if (!_createShaderFromFile(fragmentPath, &fragment, GL_FRAGMENT_SHADER))
 	{
 		glDeleteShader(vertex);
 		return false;
 	}
 
-	bool res = createShaderProgram(vertex, fragment, program);
+	bool res = _createShaderProgram(vertex, fragment, program);
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
