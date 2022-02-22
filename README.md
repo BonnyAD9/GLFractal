@@ -4,12 +4,15 @@ App that renders fractals using OpenGL
 - Mandelbrot set
 - Julia set
 - Newton fractal
+- Nova fractal
 ### Mandelbrot set
 ![image](https://user-images.githubusercontent.com/46282097/151607444-bc8c281e-98bc-42f5-a9ca-2bdfc0c8c80f.png)
 ### Julia set
 ![image](https://user-images.githubusercontent.com/46282097/151607498-84dd53ab-c9a4-45c6-97c5-8fbc5ad13aa4.png)
 ### Newton fractal
 ![image](https://user-images.githubusercontent.com/46282097/151607555-f0ddeca1-5dba-416f-82ab-aba72914f06b.png)
+### Nova fractal
+![image](https://user-images.githubusercontent.com/46282097/155191717-ec2ec72f-4924-4e3a-9487-3badeda6b6d6.png)
 ### Help page
 ![image](https://user-images.githubusercontent.com/46282097/151577734-e1331e1e-2293-41ac-a982-3271fae741ee.png)
 ## Available gradients
