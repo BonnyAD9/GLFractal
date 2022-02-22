@@ -47,6 +47,7 @@ namespace GLFractal
         int    _iterations;
         Vec3   _color;
         DVec2  _constants[_MAX_CONSTANTS];
+        int _constantCount = 0;
         float  _colorCount;
 
         float _selScale;
@@ -112,6 +113,7 @@ namespace GLFractal
             Shader newtonCoefD;
             Shader novaF;
             Shader novaD;
+            Shader selector;
             Shader debug;
         } _fractals;
 
@@ -180,6 +182,7 @@ namespace GLFractal
 
         void _mouseMoveCallback(GLFWwindow* window, double x, double y);
         _RenderChange _moveConstant(GLFWwindow* window);
+        _RenderChange _moveConstants(GLFWwindow* window);
         _RenderChange _moveRoot(GLFWwindow* window);
         _RenderChange _moveView(GLFWwindow* window, DVec2 mouseDelta, bool allowSelector);
         _RenderChange _scaleView(GLFWwindow* window, DVec2 mouseDelta, bool allowSelector);
@@ -396,6 +399,39 @@ namespace GLFractal
                 return GLFResult::SHADER_INIT_ERROR;
             _fractals.novaF.update();
 
+            // nova fractal double
+            _fractals.novaD = Shader("shader.vert", "nova_d.frag", [](Shader& shader)
+                {
+                    shader.use();
+                    shader.setInt("texture1", 0);
+                    shader.setDouble("scale", _scale);
+                    shader.setDouble2("center", _center);
+                    shader.setInt("iter", _iterations / 10);
+                    shader.setFloat3("color", _color);
+                    shader.setFloat2Array("roots", _MAX_ROOTS, _roots);
+                    shader.setInt("rootCount", _rootCount);
+                    shader.setFloat2Array("coefs", _MAX_ROOTS + 1, _coefs);
+                    shader.setInt("coefCount", _coefCount);
+                    shader.setDouble2("adder", _constants[0]);
+                    shader.setDouble2("multiplier", _constants[1]);
+                });
+            if (!_fractals.novaD.isCreated())
+                return GLFResult::SHADER_INIT_ERROR;
+            _fractals.novaD.update();
+
+            _fractals.selector = Shader("shader.vert", "selector.frag", [](Shader& shader)
+                {
+                    shader.use();
+                    shader.setInt("texture1", 0);
+                    shader.setFloat("scale", _selScale);
+                    shader.setFloat2("center", _selCenter);
+                    shader.setFloat2Array("constants", _MAX_CONSTANTS, _constants);
+                    shader.setInt("constantCount", _constantCount);
+                });
+            if (!_fractals.selector.isCreated())
+                return GLFResult::SHADER_INIT_ERROR;
+            _fractals.selector.update();
+
             _fractals.debug = Shader("shader.vert", "debug.frag", [](Shader& shader)
                 {
                     shader.use();
@@ -582,7 +618,7 @@ namespace GLFractal
                     _updateCoefs();
                 break;
             case Fractal::NOVA:
-                //_toggleFloatDouble(window);
+                _toggleFloatDouble(window);
 
                 if (_changeIterations(window, false) != _RenderChange::NONE) {}
                 else _changeFractal(window);
@@ -904,8 +940,9 @@ namespace GLFractal
                 if (!cont)
                     break;
 
-                if (_moveView(window, delta, false) != _RenderChange::NONE) break;
-                if (_scaleView(window, delta, false) != _RenderChange::NONE) break;
+                if (_moveConstants(window) != _RenderChange::NONE) break;
+                if (_moveView(window, delta, true) != _RenderChange::NONE) break;
+                if (_scaleView(window, delta, true) != _RenderChange::NONE) break;
             }
             }
         }
@@ -923,6 +960,48 @@ namespace GLFractal
                     );
                     return _RenderChange::SELECTOR;
                 }
+                return _RenderChange::INVALID;
+            }
+            return _RenderChange::NONE;
+        }
+
+        _RenderChange _moveConstants(GLFWwindow* window)
+        {
+            static int constantHold = -1;
+
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && _mousePos.x > _VIEW_WIDTH && _mousePos.y > _SMALL_HEIGHT_OFFSET)
+            {
+                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                {
+                    DVec2 relCur = _mousePos - DVec2(_VIEW_WIDTH, _SMALL_HEIGHT_OFFSET);
+                    DVec2 pos = DVec2(
+                        (relCur.x - _SMALL_WIDTH / 2) / _SMALL_WIDTH * _selScale - _selCenter.x,
+                        (relCur.y - _SMALL_WIDTH / 2) / _SMALL_WIDTH * -_selScale - _selCenter.y
+                    );
+
+                    if (constantHold < 0)
+                    {
+                        int closest = 0;
+                        double closestDistance = (pos - _constants[0]).length();
+                        for (int i = 0; i < _constantCount; i++)
+                        {
+                            double distance = (pos - _constants[i]).length();
+                            if (distance < closestDistance)
+                            {
+                                closestDistance = distance;
+                                closest = i;
+                            }
+                        }
+                        if (closestDistance < 0.007 * _selScale)
+                            constantHold = closest;
+                        else
+                            return _RenderChange::INVALID;
+                    }
+
+                    _constants[constantHold] = pos;
+                    return _RenderChange::SELECTOR;
+                }
+                constantHold = -1;
                 return _RenderChange::INVALID;
             }
             return _RenderChange::NONE;
@@ -955,8 +1034,11 @@ namespace GLFractal
                             closest = i;
                         }
                     }
+
                     if (distance < 0.007 * _scale)
                         rootHold = closest;
+                    else
+                        return _RenderChange::NONE;
                 }
                 _roots[rootHold] = fracPos;
                 return _RenderChange::MAIN;
@@ -1081,7 +1163,7 @@ namespace GLFractal
                 _renderText("Fractal: Mandelbrot set", lm, t -= _spacing.full, _spacing.scaleM);
 
                 _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
-                _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Iterations: " + to_string(_iterations), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
@@ -1093,7 +1175,7 @@ namespace GLFractal
                 _renderText("Fractal: Julia set", lm, t -= _spacing.full, _spacing.scaleM);
 
                 _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
-                _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Iterations: " + to_string(_iterations), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
@@ -1112,11 +1194,30 @@ namespace GLFractal
                 _renderText("Fractal: Newton fractal", lm, t -= _spacing.full, _spacing.scaleM);
 
                 _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
-                _renderText("Iterations: " + (_frac == Fractal::NEWTON ? to_string(_iterations / 10) : to_string(_iterations)), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Iterations: " + to_string(_iterations / 10), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                break;
+            case Fractal::NOVA:
+                _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
+
+                _renderText("Fractal: Nova fractal", lm, t -= _spacing.full, _spacing.scaleM);
+
+                _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
+                _renderText("Iterations: " + to_string(_iterations / 10), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Adder constant: " + to_string(_constants[0].x) + " + " + to_string(_constants[0].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Multiplier constant: " + to_string(_constants[1].x) + " + " + to_string(_constants[1].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+
+                _renderText("Selector:", lm, t -= _spacing.full, _spacing.scaleM);
+                _renderText("Iterations: " + to_string(_selIterations), ls, t -= _spacing.extended, _spacing.scaleS);
+                _renderText("Scale: " + to_string(4 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             default:
                 _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
@@ -1146,6 +1247,7 @@ namespace GLFractal
             _renderText("mandelbrot set : 1", c1s, t -= _spacing.normal, _spacing.scaleS);
             _renderText("julia set      : 2", c1s, t -= _spacing.normal, _spacing.scaleS);
             _renderText("newton fractal : 3", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("nova fractal   : 4", c1s, t -= _spacing.normal, _spacing.scaleS);
             
             _renderText("Selector:", c1m, t -= _spacing.full, _spacing.scaleM);
             _renderText("choose point : LMB", c1s, t -= _spacing.extended, _spacing.scaleS);
@@ -1173,7 +1275,7 @@ namespace GLFractal
             _renderText("20000  : Ctrl + O", c1s, t -= _spacing.normal, _spacing.scaleS);
             _renderText("100000 : Ctrl + Shift + 0", c1s, t -= _spacing.normal, _spacing.scaleS);
             _renderText("200000 : Ctrl + Shift + O", c1s, t -= _spacing.normal, _spacing.scaleS);
-            _renderText("newton fractal uses only 1/10 of iterations", c1s, t -= _spacing.normal, _spacing.scaleS);
+            _renderText("newton/nova fractal uses only 1/10 of iterations", c1s, t -= _spacing.normal, _spacing.scaleS);
 
             t = 950;
 
@@ -1325,6 +1427,17 @@ namespace GLFractal
                 break;
             case _Fractal::NOVA_F:
                 _fractals.novaF.update();
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                glBindVertexArray(_buffers.selVAO);
+                _constantCount = 2;
+                _fractals.selector.update();
+                break;
+            case _Fractal::NOVA_D:
+                _fractals.novaD.update();
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                glBindVertexArray(_buffers.selVAO);
+                _constantCount = 2;
+                _fractals.selector.update();
                 break;
             default:
                 return GLFResult::INVALID_FRACTAL;

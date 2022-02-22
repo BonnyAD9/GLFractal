@@ -79,19 +79,36 @@ int main(int argc, char** args)
                 argb[0] / 255.0f,
             };
         }
-        // --number -n
-        else if (arg == "--number" || arg == "-n")
+        // --adder -add
+        else if (arg == "--multiplier" || arg == "-mul")
         {
             double x;
             double y;
             if (!tryParse(*++args, &x))
             {
-                cout << "invalid number x argument '" << *args << "'" << endl;
+                cout << "invalid multiplier x argument '" << *args << "'" << endl;
                 return EXIT_FAILURE;
             }
             if (!tryParse(*++args, &y))
             {
-                cout << "invalid number y argument '" << *args << "'" << endl;
+                cout << "invalid multiplier y argument '" << *args << "'" << endl;
+                return EXIT_FAILURE;
+            }
+            config.constants[1] = DVec2{x, y};
+        }
+        // --adder -add
+        else if (arg == "--adder" || arg == "-add")
+        {
+            double x;
+            double y;
+            if (!tryParse(*++args, &x))
+            {
+                cout << "invalid adder x argument '" << *args << "'" << endl;
+                return EXIT_FAILURE;
+            }
+            if (!tryParse(*++args, &y))
+            {
+                cout << "invalid adder y argument '" << *args << "'" << endl;
                 return EXIT_FAILURE;
             }
             config.constants[0] = DVec2{x, y};
@@ -343,8 +360,12 @@ void printHelp()
     cout << "    sets color (in hex), usually used as max iterations color\n";
     cout << "    glfractal -c 000000\n";
     cout << "\n";
-    cout << "  --number  -n\n";
-    cout << "    sets special number for fractals (for example julia set uses it)\n";
+    cout << "  --adder  -add\n";
+    cout << "    sets special adder number for fractals (for example julia and nova uses it)\n";
+    cout << "    glfractal -n 0.0 0.0\n";
+    cout << "\n";
+    cout << "  --multiplier  -mul\n";
+    cout << "    sets special multiplier number for fractals (for example nova set uses it)\n";
     cout << "    glfractal -n 0.0 0.0\n";
     cout << "\n";
     cout << "  --color-count  -cc\n";
@@ -418,6 +439,7 @@ void printHelp()
     cout << "    mandelbrot set : 1\n";
     cout << "    julia set      : 2\n";
     cout << "    newton fractal : 3\n";
+    cout << "    nova fractal   : 4\n";
     cout << "\n";
     cout << "  Selector:\n";
     cout << "    choose point : LMB\n";

@@ -81,6 +81,15 @@
     <None Include="nova_f.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="selector.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="nova_man_f.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="nova_d.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">

@@ -8,6 +8,7 @@ help           : F1
 mandelbrot set : 1
 julia set      : 2
 newton fractal : 3
+nova fractal   : 4
 
 Selector:
 choose point : LMB

@@ -18,7 +18,7 @@ uniform int coefCount;
 uniform vec2 adder;
 uniform vec2 multiplier;
 
-vec2 newtonRaphson(vec2 z);
+vec2 newtonRaphson(vec2 z, vec2 c);
 vec2 cMul(vec2 a, vec2 b);
 vec2 cDiv(vec2 a, vec2 b);
 vec2 fun(vec2 z);
@@ -36,7 +36,7 @@ void main()
 
     for (int i = 0; i < iter; i++)
     {
-        z = newtonRaphson(z);
+        z = newtonRaphson(z, zCopy);
     }
 
     bool isC = false;
@@ -66,9 +66,9 @@ void main()
     FragColor = col;
 }
 
-vec2 newtonRaphson(vec2 z)
+vec2 newtonRaphson(vec2 z, vec2 c)
 {
-    return z - cMul(multiplier, cDiv(fun(z), deriv(z))) - adder;
+    return z - cMul(multiplier, cDiv(fun(z), deriv(z))) - c;
 }
 
 vec2 cMul(vec2 a, vec2 b)

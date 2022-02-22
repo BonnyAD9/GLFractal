@@ -210,7 +210,10 @@
     <None Include="mandelbrot_selector.frag" />
     <None Include="newton_coef_d.frag" />
     <None Include="newton_coef_f.frag" />
+    <None Include="nova_d.frag" />
     <None Include="nova_f.frag" />
+    <None Include="nova_man_f.frag" />
+    <None Include="selector.frag" />
     <None Include="shader.vert" />
     <None Include="text.frag" />
     <None Include="text.vert" />
