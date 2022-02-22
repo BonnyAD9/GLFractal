@@ -94,7 +94,7 @@ int main(int argc, char** args)
                 cout << "invalid number y argument '" << *args << "'" << endl;
                 return EXIT_FAILURE;
             }
-            config.constant = DVec2{ x, y };
+            config.constants[0] = DVec2{x, y};
         }
         // --color-count -cc
         else if (arg == "--color-count" || arg == "-cc")

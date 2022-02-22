@@ -17,6 +17,7 @@ namespace GLFractal
 		MANDELBROT = 0b1,
 		JULIA = 0b10,
 		NEWTON = 0b11,
+		NOVA = 0b100,
 	};
 
 	/// <summary>
@@ -65,7 +66,7 @@ namespace GLFractal
 		/// Value set by selector
 		/// default: [0, 0]
 		/// </summary>
-		DVec2 constant{ 0.0, 0.0 };
+		DVec2 constants[10]{ { 0.0, 0.0 }, { 1.0, 0.0 } };
 		/// <summary>
 		/// Number of colors until the gradient is repeated (in main view)
 		/// default: 256

@@ -35,6 +35,7 @@ namespace GLFractal
         const float _SMALL_SEC_HEIGHT = 1 - (float)_SMALL_WIDTH * 2 / _WIN_HEIGHT;
 
         const int _MAX_ROOTS = 10;
+        const int _MAX_CONSTANTS = 10;
 
         // when rendering text, determines how many characters will be rendered at once
         const int _MAX_STR_LEN = 64;
@@ -45,7 +46,7 @@ namespace GLFractal
         DVec2  _center;
         int    _iterations;
         Vec3   _color;
-        DVec2  _constant;
+        DVec2  _constants[_MAX_CONSTANTS];
         float  _colorCount;
 
         float _selScale;
@@ -109,6 +110,8 @@ namespace GLFractal
             Shader juliaD;
             Shader newtonCoefF;
             Shader newtonCoefD;
+            Shader novaF;
+            Shader novaD;
             Shader debug;
         } _fractals;
 
@@ -195,6 +198,7 @@ namespace GLFractal
             MANDELBROT = 0b1,
             JULIA = 0b10,
             NEWTON = 0b11,
+            NOVA = 0b100,
 
             HELP_F = 0b00,
             HELP_D = 0b01, // help debug XD
@@ -204,6 +208,8 @@ namespace GLFractal
             JULIA_D = 0b101,
             NEWTON_F = 0b110,
             NEWTON_D = 0b111,
+            NOVA_F = 0b1000,
+            NOVA_D = 0b1001,
         };
 
         enum class _RenderChange
@@ -296,7 +302,7 @@ namespace GLFractal
                     shader.setInt("iter", _selIterations);
                     shader.setFloat3("color", _color);
                     shader.setFloat("colorCount", _selColorCount);
-                    shader.setFloat2("constant", (Vec2)_constant);
+                    shader.setFloat2("constant", (Vec2)_constants[0]);
                 });
             if (!_fractals.mandelbrotSelector.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
@@ -312,7 +318,7 @@ namespace GLFractal
                     shader.setInt("iter", _iterations);
                     shader.setFloat3("color", _color);
                     shader.setFloat("colorCount", _colorCount);
-                    shader.setFloat2("constant", (Vec2)_constant);
+                    shader.setFloat2("constant", (Vec2)_constants[0]);
                 });
             if (!_fractals.juliaF.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
@@ -328,7 +334,7 @@ namespace GLFractal
                     shader.setInt("iter", _iterations);
                     shader.setFloat3("color", _color);
                     shader.setFloat("colorCount", _colorCount);
-                    shader.setDouble2("constant", _constant);
+                    shader.setDouble2("constant", _constants[0]);
                 });
             if (!_fractals.juliaF.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
@@ -369,6 +375,26 @@ namespace GLFractal
             if (!_fractals.newtonCoefD.isCreated())
                 return GLFResult::SHADER_INIT_ERROR;
             _fractals.newtonCoefD.update();
+
+            // nova fractal
+            _fractals.novaF = Shader("shader.vert", "nova_f.frag", [](Shader& shader)
+                {
+                    shader.use();
+                    shader.setInt("texture1", 0);
+                    shader.setFloat("scale", (float)_scale);
+                    shader.setFloat2("center", (Vec2)_center);
+                    shader.setInt("iter", _iterations / 10);
+                    shader.setFloat3("color", _color);
+                    shader.setFloat2Array("roots", _MAX_ROOTS, _roots);
+                    shader.setInt("rootCount", _rootCount);
+                    shader.setFloat2Array("coefs", _MAX_ROOTS + 1, _coefs);
+                    shader.setInt("coefCount", _coefCount);
+                    shader.setFloat2("adder", (Vec2)_constants[0]);
+                    shader.setFloat2("multiplier", (Vec2)_constants[1]);
+                });
+            if (!_fractals.novaF.isCreated())
+                return GLFResult::SHADER_INIT_ERROR;
+            _fractals.novaF.update();
 
             _fractals.debug = Shader("shader.vert", "debug.frag", [](Shader& shader)
                 {
@@ -555,6 +581,17 @@ namespace GLFractal
                 if (_changeCoefs(window) == _RenderChange::MAIN)
                     _updateCoefs();
                 break;
+            case Fractal::NOVA:
+                //_toggleFloatDouble(window);
+
+                if (_changeIterations(window, false) != _RenderChange::NONE) {}
+                else _changeFractal(window);
+
+                _resetRenderParam(window, false);
+
+                if (_changeCoefs(window) == _RenderChange::MAIN)
+                    _updateCoefs();
+                break;
             }
         }
 
@@ -681,6 +718,11 @@ namespace GLFractal
             if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
             {
                 _frac = Fractal::NEWTON;
+                return _RenderChange::MAIN;
+            }
+            if (glfwGetKey(window, GLFW_KEY_4))
+            {
+                _frac = Fractal::NOVA;
                 return _RenderChange::MAIN;
             }
             if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
@@ -823,6 +865,7 @@ namespace GLFractal
                 if (_scaleView(window, delta, true) != _RenderChange::NONE) break;
                 break;
             case Fractal::NEWTON:
+            {
                 bool cont = true;
                 switch (_moveRoot(window))
                 {
@@ -844,6 +887,27 @@ namespace GLFractal
 
                 break;
             }
+            case Fractal::NOVA:
+            {
+                bool cont = true;
+                switch (_moveRoot(window))
+                {
+                case _RenderChange::NONE:
+                    break;
+                case _RenderChange::INVALID:
+                    cont = false;
+                    break;
+                default:
+                    _updateCoefs();
+                    cont = false;
+                }
+                if (!cont)
+                    break;
+
+                if (_moveView(window, delta, false) != _RenderChange::NONE) break;
+                if (_scaleView(window, delta, false) != _RenderChange::NONE) break;
+            }
+            }
         }
 
         _RenderChange _moveConstant(GLFWwindow* window)
@@ -853,7 +917,7 @@ namespace GLFractal
                 if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
                 {
                     DVec2 relCur = _mousePos - DVec2(_VIEW_WIDTH, _SMALL_HEIGHT_OFFSET);
-                    _constant = DVec2(
+                    _constants[0] = DVec2(
                         (relCur.x - _SMALL_WIDTH / 2) / _SMALL_WIDTH * _selScale - _selCenter.x,
                         (relCur.y - _SMALL_WIDTH / 2) / _SMALL_WIDTH * -_selScale - _selCenter.y
                     );
@@ -1034,7 +1098,7 @@ namespace GLFractal
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Number: " + to_string(_constant.x) + " + " + to_string(_constant.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Number: " + to_string(_constants[0].x) + " + " + to_string(_constants[0].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
 
                 _renderText("Selector:", lm, t -= _spacing.full, _spacing.scaleM);
                 _renderText("Iterations: " + to_string(_selIterations), ls, t -= _spacing.extended, _spacing.scaleS);
@@ -1167,7 +1231,10 @@ namespace GLFractal
         _center     = config.center;
         _iterations = config.iterations;
         _color      = config.color;
-        _constant   = config.constant;
+
+        for (int i = 0; i < _MAX_CONSTANTS; i++)
+            _constants[i] = config.constants[i];
+        
         _colorCount = config.colorCount;
 
         _selScale      = config.selScale;
@@ -1255,6 +1322,9 @@ namespace GLFractal
                 break;
             case _Fractal::NEWTON_D:
                 _fractals.newtonCoefD.update();
+                break;
+            case _Fractal::NOVA_F:
+                _fractals.novaF.update();
                 break;
             default:
                 return GLFResult::INVALID_FRACTAL;
