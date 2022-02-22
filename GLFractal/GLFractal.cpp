@@ -189,7 +189,7 @@ namespace GLFractal
 
         void _renderText(string text, float x, float y, float scale);
 
-        void _renderInfo(double deltaTime);
+        void _renderInfo(int fps);
 
         void _renderHelp();
 
