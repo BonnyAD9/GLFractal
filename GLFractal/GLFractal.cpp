@@ -204,7 +204,7 @@ namespace GLFractal
             NOVA = 0b100,
 
             HELP_F = 0b00,
-            HELP_D = 0b01, // help debug XD
+            HELP_D = 0b01,
             MANDELBROT_F = 0b10,
             MANDELBROT_D = 0b11,
             JULIA_F = 0b100,
@@ -1482,6 +1482,10 @@ namespace GLFractal
         _fractals.juliaD.free();
         _fractals.newtonCoefF.free();
         _fractals.newtonCoefD.free();
+        _fractals.novaF.free();
+        _fractals.novaD.free();
+        _fractals.selector.free();
+        _fractals.debug.free();
 
         _fontShader.free();
 
