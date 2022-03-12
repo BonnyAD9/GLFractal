@@ -10,6 +10,7 @@
 #include "Vectors.h"
 #include "Complex.h"
 #include "Gradient.h"
+#include "Parser.h"
 
 namespace GLFractal
 {
@@ -19,6 +20,9 @@ namespace GLFractal
 
         enum class _Fractal;
         enum class _RenderChange;
+
+
+        //==================================<<CONSTANTS>>==================================//
 
         // Sizes of window and render areas
         const int _WIN_WIDTH = 1500;
@@ -40,6 +44,9 @@ namespace GLFractal
         // when rendering text, determines how many characters will be rendered at once
         const int _MAX_STR_LEN = 64;
 
+
+        //==================================<<VARIABLES>>==================================//
+
         GLFConfig _initialSettings;
 
         double _scale;
@@ -47,7 +54,7 @@ namespace GLFractal
         int    _iterations;
         Vec3   _color;
         DVec2  _constants[_MAX_CONSTANTS];
-        int _constantCount = 0;
+        int    _constantCount = 0;
         float  _colorCount;
 
         float _selScale;
@@ -61,10 +68,10 @@ namespace GLFractal
         GLFWwindow* _window;
 
         FontTexture _font;
-        int _fontSize;
-        Shader _fontShader;
-        Vec3 _textColor;
-        Mat4 _fontProjection;
+        int         _fontSize;
+        Shader      _fontShader;
+        Vec3        _textColor;
+        Mat4        _fontProjection;
 
         double _fpsLimit;
 
@@ -83,7 +90,7 @@ namespace GLFractal
 
         static DVec2 _mousePos;
 
-        int _rootCount = 3;
+        int  _rootCount = 3;
         Vec2 _roots[_MAX_ROOTS] =
         {
             Vec2(1.0f, 0.0f),
@@ -91,7 +98,7 @@ namespace GLFractal
             Vec2(-0.5f, 0.86603f),
         };
 
-        int _coefCount = 4;
+        int  _coefCount = 4;
         Vec2 _coefs[_MAX_ROOTS + 1] =
         {
             Vec2(1.0f, 0.0f),
@@ -99,8 +106,6 @@ namespace GLFractal
             Vec2(0.0f, 0.0f),
             Vec2(-1.0f, 0.0f),
         };
-
-        _Fractal _fractal();
 
         struct
         {
@@ -160,9 +165,14 @@ namespace GLFractal
             1, 2, 3
         };
 
+
+        //==================================<<HEADERS>>==================================//
+
         inline _RenderChange operator|(_RenderChange rc1, _RenderChange rc2);
 
         _Fractal _fractal();
+
+        void _updateCoefs();
 
         GLFResult _init();
         GLFResult _initShaders();
@@ -193,7 +203,8 @@ namespace GLFractal
 
         void _renderHelp();
 
-        void _updateCoefs();
+
+        //==================================<<ENUMERABLES>>==================================//
 
         enum class _Fractal
         {
@@ -223,6 +234,9 @@ namespace GLFractal
             SELECTOR = 0b100,
         };
 
+
+        //==================================<<HELPER FUNCTIONS>>==================================//
+
         inline _RenderChange operator|(_RenderChange rc1, _RenderChange rc2)
         {
             return static_cast<_RenderChange>(static_cast<int>(rc1) | static_cast<int>(rc2));
@@ -232,6 +246,27 @@ namespace GLFractal
         {
             return (_Fractal)(((unsigned int)_frac << 1) | (unsigned int)_useDouble);
         }
+
+        void _updateCoefs()
+        {
+            _coefCount = _rootCount + 1;
+
+            // set the _coefs to 1
+            for (int i = 0; i < _rootCount; i++)
+                _coefs[i] = Vec2(0, 0);
+            _coefs[_rootCount] = Vec2(1, 0);
+
+            // calculate coefs as multiplication of all degree 1 polynomials in _roots
+            for (int i = _rootCount; i > 0; i--)
+            {
+                for (int j = i - 1; j < _rootCount; j++)
+                    _coefs[j] = Complex::cMul(_coefs[j], _roots[i - 1] * -1) + _coefs[j + 1];
+                _coefs[_rootCount] = Complex::cMul(_coefs[_rootCount], _roots[i - 1] * -1);
+            }
+        }
+
+
+        //==================================<<INICIALIZATION>>==================================//
 
         GLFResult _init()
         {
@@ -577,6 +612,9 @@ namespace GLFractal
             return GLFResult::OK;
         }
 
+
+        //==================================<<KEYBOARD INPUT>>==================================//
+
         void _processInput(GLFWwindow* window)
         {
             // exit on ESC
@@ -880,6 +918,9 @@ namespace GLFractal
             return _RenderChange::NONE;
         }
 
+
+        //==================================<<MOUSE INPUT>>==================================//
+
         void _mouseMoveCallback(GLFWwindow* window, double x, double y)
         {
             // calculating mouse movement
@@ -1090,6 +1131,9 @@ namespace GLFractal
             return _RenderChange::MAIN;
         }
 
+
+        //==================================<<TEXT RENDERING>>==================================//
+
         void _renderText(string text, float x, float y, float scale)
         {
             int vertLength = 16 * text.length();
@@ -1166,8 +1210,8 @@ namespace GLFractal
                 _renderText("Iterations: " + to_string(_iterations), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + Parser::toString(_scale / 4), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + Parser::toString(-_center.x) + " + " + Parser::toString(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::JULIA:
                 _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
@@ -1178,15 +1222,15 @@ namespace GLFractal
                 _renderText("Iterations: " + to_string(_iterations), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_colorCount), ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + Parser::toString(_scale / 4), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + Parser::toString(-_center.x) + " + " + Parser::toString(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Number: " + to_string(_constants[0].x) + " + " + to_string(_constants[0].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
 
                 _renderText("Selector:", lm, t -= _spacing.full, _spacing.scaleM);
                 _renderText("Iterations: " + to_string(_selIterations), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Color count: " + to_string((int)_selColorCount), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(4 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + Parser::toString(4 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + Parser::toString(-_selCenter.x) + " + " + Parser::toString(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::NEWTON:
                 _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
@@ -1196,9 +1240,11 @@ namespace GLFractal
                 _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
                 _renderText("Iterations: " + to_string(_iterations / 10), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + Parser::toString(_scale / 4), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + Parser::toString(-_center.x) + " + " + Parser::toString(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                for (int i = 0; i < _rootCount; i++)
+                    _renderText(" " + Parser::toString(_roots[i].x) + ", " + Parser::toString(_roots[i].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             case Fractal::NOVA:
                 _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
@@ -1208,16 +1254,18 @@ namespace GLFractal
                 _renderText("Main:", lm, t -= _spacing.full, _spacing.scaleM);
                 _renderText("Iterations: " + to_string(_iterations / 10), ls, t -= _spacing.extended, _spacing.scaleS);
                 _renderText("Use double: " + useDouble, ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Scale: " + to_string(4 / _scale), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Center: " + to_string(-_center.x) + " + " + to_string(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + Parser::toString(_scale / 4), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + Parser::toString(-_center.x) + " + " + Parser::toString(-_center.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Adder constant: " + to_string(_constants[0].x) + " + " + to_string(_constants[0].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 _renderText("Multiplier constant: " + to_string(_constants[1].x) + " + " + to_string(_constants[1].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Number of roots: " + to_string(_rootCount), ls, t -= _spacing.normal, _spacing.scaleS);
+                for (int i = 0; i < _rootCount; i++)
+                    _renderText(" " + Parser::toString(_roots[i].x) + ", " + Parser::toString(_roots[i].y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
 
                 _renderText("Selector:", lm, t -= _spacing.full, _spacing.scaleM);
                 _renderText("Iterations: " + to_string(_selIterations), ls, t -= _spacing.extended, _spacing.scaleS);
-                _renderText("Scale: " + to_string(4 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
-                _renderText("Center: " + to_string(-_selCenter.x) + " + " + to_string(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Scale: " + Parser::toString(4 / _selScale), ls, t -= _spacing.normal, _spacing.scaleS);
+                _renderText("Center: " + Parser::toString(-_selCenter.x) + " + " + Parser::toString(-_selCenter.y) + "i", ls, t -= _spacing.normal, _spacing.scaleS);
                 break;
             default:
                 _renderText("Fps: " + to_string(fps), lm, t, _spacing.scaleM);
@@ -1305,25 +1353,10 @@ namespace GLFractal
             _renderText("add/remove point : Shift + RMB", c2s, t -= _spacing.extended, _spacing.scaleS);
             _renderText("move point       : Shift + LMB", c2s, t -= _spacing.normal, _spacing.scaleS);
         }
-
-        void _updateCoefs()
-        {
-            _coefCount = _rootCount + 1;
-
-            // set the _coefs to 1
-            for (int i = 0; i < _rootCount; i++)
-                _coefs[i] = Vec2(0, 0);
-            _coefs[_rootCount] = Vec2(1, 0);
-
-            // calculate coefs as multiplication of all degree 2 polynomials in _roots
-            for (int i = _rootCount; i > 0; i--)
-            {
-                for (int j = i - 1; j < _rootCount; j++)
-                    _coefs[j] = Complex::cMul(_coefs[j], _roots[i - 1] * -1) + _coefs[j + 1];
-                _coefs[_rootCount] = Complex::cMul(_coefs[_rootCount], _roots[i - 1] * -1);
-            }
-        }
     }
+
+
+    //==================================<<PUBLIC FUNCTIONS>>==================================//
 
     GLFResult init(GLFConfig config)
     {
@@ -1351,6 +1384,14 @@ namespace GLFractal
         _textColor = config.textColor;
 
         _fpsLimit = config.fpsLimit;
+
+        if (config.rootCount >= 0)
+        {
+            for (int i = 0; i < config.rootCount; i++)
+                _roots[i] = config.roots[i];
+            _rootCount = config.rootCount;
+            _updateCoefs();
+        }
 
         GLFResult result{ GLFResult::OK };
         if ((result = _init()) != GLFResult::OK)

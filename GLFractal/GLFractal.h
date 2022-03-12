@@ -138,6 +138,18 @@ namespace GLFractal
 		/// default: 10 000
 		/// </summary>
 		double fpsLimit = 10000.0;
+
+		/// <summary>
+		/// Sets the number of roots negative number leaves the default
+		/// default: -1
+		/// </summary>
+		int rootCount = -1;
+
+		/// <summary>
+		/// Contains the roots
+		/// default: []
+		/// </summary>
+		Vec2 roots[10];
 	};
 
 	/// <summary>

@@ -30,27 +30,30 @@ void main()
     }
     dvec2 z = dvec2((TexCoord.y - 0.5lf) * scale - center.x, (TexCoord.x - 0.5lf) * scale - center.y);
     dvec2 zCopy = z;
-
-    for (int i = 0; i < iter; i++)
+	int c = 0;
+	int i;
+    for (i = 1; i < iter - 1; i++)
     {
         z = newtonRaphson(z);
+		double dist = length(roots[0] - z);
+		c = 0;
+		for (int j = 1; j < rootCount; j++)
+		{
+			double newDist = length(roots[j] - z);
+			if (newDist < dist)
+			{
+				dist = newDist;
+				c = j;
+			}
+		}
+		if (dist < 0.0001)
+			break;
     }
 
     bool isC = false;
 
-    double dist = length(roots[0] - z);
-    int c = 0;
-    for (int i = 1; i < rootCount; i++)
-    {
-        double newDist = length(roots[i] - z);
-        if (newDist < dist)
-        {
-            dist = newDist;
-            c = i;
-        }
-    }
-
-    vec4 col = texture(texture1, vec2(float(c) / rootCount));
+    vec4 col = i >= iter ? vec4(0) : texture(texture1, vec2(float(c) / rootCount)) * (1.0 - (i / float(iter)));
+	col.w = 1.0;
     double zDist = length(zCopy - roots[c]);
     if (zDist < (0.007 * scale) && zDist > (0.004 * scale))
     {

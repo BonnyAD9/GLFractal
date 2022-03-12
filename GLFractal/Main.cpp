@@ -33,7 +33,7 @@ int main(int argc, char** args)
                 cout << "invalid scale argument '" << *args << "'" << endl;
                 return EXIT_FAILURE;
             }
-            config.scale = 4 / scale;
+            config.scale = scale * 4;
         }
         // --center -c
         else if (arg == "--center" || arg == "-c")
@@ -185,6 +185,8 @@ int main(int argc, char** args)
                 config.fractal = Fractal::JULIA;
             else if (val == "newton" || val == "n")
                 config.fractal = Fractal::NEWTON;
+            else if (val == "nova" || val == "nov")
+                config.fractal = Fractal::NOVA;
             else if (val == "help" || val == "h")
                 config.fractal = Fractal::HELP;
             else
@@ -272,6 +274,25 @@ int main(int argc, char** args)
             }
             config.fpsLimit = fpsLimit;
         }
+        else if (arg == "--roots" || arg == "-r")
+        {
+            for (config.rootCount = 0; *++args && *args != string{"r"}; config.rootCount++)
+            {
+                if (config.rootCount >= 10)
+                {
+                    cout << "too many roots (10 is max)" << endl;
+                    return EXIT_FAILURE;
+                }
+                if (!tryParse(*args, &config.roots[config.rootCount].x) || !*++args ||
+                    !tryParse(*args, &config.roots[config.rootCount].y))
+                {
+                    cout << "invalid roots" << endl;
+                    return EXIT_FAILURE;
+                }
+            }
+            if (!*args)
+                break;
+        }
         else
         {
             cout << "Invalid argument '" << arg << "'" << endl;
@@ -356,7 +377,7 @@ void printHelp()
     cout << "    sets the number of iterations for each pixel (newton fractal uses only 1/10)\n";
     cout << "    glfractal -i 1000\n";
     cout << "\n";
-    cout << "  --color  -c\n";
+    cout << "  --color  -col\n";
     cout << "    sets color (in hex), usually used as max iterations color\n";
     cout << "    glfractal -c 000000\n";
     cout << "\n";
@@ -394,6 +415,7 @@ void printHelp()
     cout << "      mandelbrot | m\n";
     cout << "      julia      | j\n";
     cout << "      newton     | n\n";
+    cout << "      nova       | nov\n";
     cout << "      help       | h\n";
     cout << "    glfractal -f m\n";
     cout << "\n";
@@ -404,7 +426,7 @@ void printHelp()
     cout << "    sets the clear background color (in hex)\n";
     cout << "    glfractal -bg 191919\n";
     cout << "\n";
-    cout << "  --text-colot  -fg\n";
+    cout << "  --text-color  -fg\n";
     cout << "    sets the text color\n";
     cout << "    glfractal -fg E5E5E5\n";
     cout << "\n";
@@ -427,6 +449,10 @@ void printHelp()
     cout << "  --fps-limit  -fps\n";
     cout << "    sets the fps limit\n";
     cout << "    glfractal -fps 10000.0\n";
+    cout << "\n";
+    cout << "  --roots  -r\n";
+    cout << "    sets the roots of polynomial (1 root has real and complex component), there must be 'r' after the last root\n";
+    cout << "    glfractal 1.0 0.0 -0.5 -0.86603 -0.5 0.86603 r\n";
     cout << "\n";
     cout << "Key bindings:\n";
     cout << "  View (hold space to use it for selector):\n";

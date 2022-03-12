@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 
+using std::string, std::ostringstream;
+
 using std::invalid_argument, std::out_of_range;
 
 namespace Parser
@@ -52,5 +54,13 @@ namespace Parser
         }
         catch (const invalid_argument& e) { }
         return false;
+    }
+
+    string toString(double d)
+    {
+        ostringstream ss;
+        ss.precision(12);
+        ss << d;
+        return ss.str();
     }
 }
