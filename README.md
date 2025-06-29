@@ -1,5 +1,16 @@
 # GLFractal
-App that renders fractals using OpenGL
+App that renders fractals using OpenGL.
+
+To compile, just run `make`. To run, you need to make sure that all the shaders
+and font are in cwd.
+
+e.g. do:
+```sh
+make
+cd bin/release
+./main
+```
+
 ## Supported fractals:
 - Mandelbrot set
 - Julia set

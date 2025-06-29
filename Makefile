@@ -6,11 +6,13 @@ CFILES:=$(wildcard src/*.cpp) src/glad.c
 HFILES:=$(wildcard src/*.hpp)
 OBJS:=$(patsubst src/%.cpp, obj/%.o, $(CFILES))
 
+release: $(CFILES)
+	-mkdir -p bin/release
+	$(CC) $(RFLAGS) -o bin/release/$(OUT) $(CFILES)
+	cp src/*.frag src/*.vert src/*.ttf bin/release/
+
 debug: $(OBJS)
 	$(CC) $(CFLAGS) -o bin/debug/$(OUT) $(OBJS)
-
-release: $(CFILES)
-	$(CC) $(RFLAGS) -o bin/release/$(OUT) $(CFILES)
 
 $(OBJS): $(CFILES)
 	$(CC) $(CFLAGS) -c $(patsubst obj/%.o, src/%.cpp, $@) -o $@
